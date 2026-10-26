@@ -1,0 +1,102 @@
+/* ----------------------------------------------------
+   BOARD & TOKEN SVG SPECIFIC STYLES
+---------------------------------------------------- */
+
+.token-group {
+  transition: transform 0.22s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.token-group.movable {
+  cursor: pointer;
+}
+
+.token-group.movable circle {
+  filter: drop-shadow(0 0 6px #f59e0b);
+}
+
+.token-aura {
+  animation: pulseAura 1.4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.home-gate-lock {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  animation: floatLock 2.4s ease-in-out infinite;
+}
+
+@keyframes pulseAura {
+  0% {
+    r: 24;
+    opacity: 0.65;
+  }
+  50% {
+    r: 34;
+    opacity: 0.2;
+  }
+  100% {
+    r: 24;
+    opacity: 0.65;
+  }
+}
+
+@keyframes floatLock {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* ----------------------------------------------------
+   PASS & PLAY CORNER DICE STYLES
+---------------------------------------------------- */
+.corner-dice {
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.corner-dice.active-turn {
+  cursor: pointer;
+  filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.7));
+}
+
+.corner-dice.rolling {
+  animation: diceRollShake 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.dice-aura {
+  animation: pulseDiceAura 1.2s ease-in-out infinite;
+  transform-origin: center;
+}
+
+.dice-tap-badge {
+  animation: floatTapBadge 1.2s ease-in-out infinite;
+}
+
+@keyframes pulseDiceAura {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.75;
+  }
+}
+
+@keyframes floatTapBadge {
+  0%, 100% {
+    transform: translateY(-36px);
+  }
+  50% {
+    transform: translateY(-41px);
+  }
+}
+
+@keyframes diceRollShake {
+  0% { transform: rotate(0deg) scale(1); }
+  25% { transform: rotate(-15deg) scale(1.12); }
+  50% { transform: rotate(15deg) scale(1.18); }
+  75% { transform: rotate(-10deg) scale(1.08); }
+  100% { transform: rotate(0deg) scale(1); }
+}

@@ -1,0 +1,11 @@
+<resources>
+    <style name="Theme.SuperLudo" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@android:color/black</item>
+        <item name="android:colorBackground">@android:color/black</item>
+    </style>
+
+    <style name="Theme.SuperLudo.Fullscreen" parent="Theme.SuperLudo">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
+</resources>

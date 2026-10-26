@@ -1,0 +1,12 @@
+{
+  "name": "ludo-game",
+  "version": "1.0.0",
+  "description": "Super Ludo Pro Mobile Game with Special Kill Rule",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve -p 8080"
+  },
+  "keywords": ["ludo", "game", "android"],
+  "author": "",
+  "license": "MIT"
+}

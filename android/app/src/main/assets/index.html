@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>सुपर लूडो प्रो - Super Ludo Pro (2-6 Players)</title>
+
+  <!-- PWA & Mobile Web Meta Tags -->
+  <meta name="theme-color" content="#0b0f19">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/board.css">
+  <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+  <div id="app-container">
+    <!-- Top Header Bar -->
+    <header class="app-header">
+      <div class="brand-wrapper">
+        <h1 class="app-title" id="app-title">सुपर लूडो प्रो</h1>
+        <span class="rule-badge" id="rule-banner">नियम: बिना गोटी काटे अंदर जाना मना है 🔒</span>
+      </div>
+      <div class="header-actions">
+        <button id="btn-sound" class="icon-btn" title="Sound Toggle">🔊</button>
+        <button id="btn-lang" class="icon-btn" title="Language Toggle">EN</button>
+        <button id="btn-fullscreen" class="icon-btn" title="Fullscreen">⛶</button>
+        <button id="btn-rules" class="icon-btn" title="Rules">❓</button>
+        <button id="btn-menu" class="icon-btn" title="New Game / Settings">⚙️</button>
+      </div>
+    </header>
+
+    <!-- Turn Status HUD -->
+    <section class="turn-status-bar" id="turn-bar">
+      <div class="player-info">
+        <div class="player-avatar" id="turn-player-avatar">1</div>
+        <div class="player-meta">
+          <span class="player-name" id="turn-player-name">Player 1</span>
+          <span class="action-hint" id="turn-action-hint">पासा फेंकें</span>
+        </div>
+      </div>
+      <div class="gate-badge-container" id="turn-gate-status">
+        <span class="badge-locked">🔒 दरवाज़ा बंद (1 गोटी काटना ज़रूरी)</span>
+      </div>
+    </section>
+
+    <!-- Game Viewport -->
+    <main class="game-viewport">
+      <div class="board-wrapper">
+        <svg id="ludo-board" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet"></svg>
+        <canvas id="confetti-canvas"></canvas>
+      </div>
+    </main>
+
+    <!-- Bottom Action Bar with 3D Dice -->
+    <footer class="bottom-action-bar">
+      <div class="dice-container" id="dice-area" title="Tap to Roll">
+        <div class="dice-cube" id="dice-cube" data-face="1">
+          <div class="dice-face face-1"><span class="pip"></span></div>
+          <div class="dice-face face-2"><span class="pip"></span><span class="pip"></span></div>
+          <div class="dice-face face-3"><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
+          <div class="dice-face face-4"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
+          <div class="dice-face face-5"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
+          <div class="dice-face face-6"><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
+        </div>
+        <div class="dice-value-badge" id="dice-value-display">1</div>
+      </div>
+
+      <button id="btn-roll" class="btn-primary-roll">पासा फेंकें</button>
+    </footer>
+
+    <!-- Toast Notification Banner -->
+    <div id="toast-notification" class="toast-popup"></div>
+
+    <!-- ----------------------------------------------------
+         MODALS & DIALOGS
+    ---------------------------------------------------- -->
+
+    <!-- Setup / New Game Dialog -->
+    <dialog id="setup-dialog">
+      <div class="dialog-header">
+        <h2 class="dialog-title">नया मैच सेटिंग्स (New Game)</h2>
+        <button type="button" class="icon-btn btn-close-dialog">✕</button>
+      </div>
+      <div class="dialog-content">
+        <!-- Player Count Selection (2, 3, 4, 5, 6 players!) -->
+        <div class="setting-group">
+          <label class="setting-label">खिलाड़ी चुनें (2 - 6 Players):</label>
+          <div class="btn-group">
+            <button type="button" class="selector-btn player-count-btn" data-count="2">2 खिलाड़ी</button>
+            <button type="button" class="selector-btn player-count-btn" data-count="3">3 खिलाड़ी</button>
+            <button type="button" class="selector-btn player-count-btn active" data-count="4">4 खिलाड़ी</button>
+            <button type="button" class="selector-btn player-count-btn" data-count="5">5 खिलाड़ी</button>
+            <button type="button" class="selector-btn player-count-btn" data-count="6">6 खिलाड़ी</button>
+          </div>
+        </div>
+
+        <!-- Board Style Selection -->
+        <div class="setting-group">
+          <label class="setting-label">बोर्ड प्रकार (Board Style):</label>
+          <div class="btn-group">
+            <button type="button" class="selector-btn board-type-btn active" data-board="auto">Auto (Best Fit)</button>
+            <button type="button" class="selector-btn board-type-btn" data-board="4">Classic 4P (Square)</button>
+            <button type="button" class="selector-btn board-type-btn" data-board="6">Hexagon 6P (हेक्सागोन)</button>
+          </div>
+        </div>
+
+        <!-- Tokens per Player -->
+        <div class="setting-group">
+          <label class="setting-label">गोटी की संख्या:</label>
+          <div class="btn-group">
+            <button type="button" class="selector-btn token-count-btn active" data-tokens="4">4 गोटी (Standard)</button>
+            <button type="button" class="selector-btn token-count-btn" data-tokens="2">2 गोटी (Quick Match)</button>
+          </div>
+        </div>
+
+        <!-- Special Kill Rule Toggle (Requested by User) -->
+        <div class="toggle-switch-row">
+          <div>
+            <div class="setting-label" style="color: #ffffff;">⚔️ गोटी काटना ज़रूरी नियम</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">बिना गोटी काटे अंदर जाना मना है</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="toggle-kill-rule" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <!-- Player Configurations List -->
+        <div class="setting-group">
+          <label class="setting-label">खिलाड़ी और बॉट विवरण:</label>
+          <div id="player-list-config" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" id="btn-start-game" class="btn-dialog-submit">🎮 खेल शुरू करें (Start)</button>
+      </div>
+    </dialog>
+
+    <!-- Rules Dialog -->
+    <dialog id="rules-dialog">
+      <div class="dialog-header">
+        <h2 class="dialog-title" id="rules-title">लूडो नियम (Rules)</h2>
+        <button type="button" class="icon-btn btn-close-dialog">✕</button>
+      </div>
+      <div class="dialog-content" id="rules-body">
+        <!-- Injected dynamically -->
+      </div>
+      <div class="dialog-actions">
+        <button type="button" class="btn-dialog-submit btn-close-dialog">समझ गया (OK)</button>
+      </div>
+    </dialog>
+
+    <!-- Game Over / Winners Dialog -->
+    <dialog id="win-dialog">
+      <div class="dialog-header">
+        <h2 class="dialog-title" id="win-title">🏆 खेल समाप्त!</h2>
+        <button type="button" class="icon-btn btn-close-dialog">✕</button>
+      </div>
+      <div class="dialog-content">
+        <div class="podium-list" id="win-podium-list"></div>
+      </div>
+      <div class="dialog-actions">
+        <button type="button" id="btn-play-again" class="btn-dialog-submit">फिर से खेलें (Play Again)</button>
+      </div>
+    </dialog>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/audio.js"></script>
+  <script src="js/board4.js"></script>
+  <script src="js/board6.js"></script>
+  <script src="js/rules.js"></script>
+  <script src="js/ai.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
