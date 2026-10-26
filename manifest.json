@@ -1,0 +1,18 @@
+{
+  "name": "सुपर लूडो प्रो - Super Ludo Pro",
+  "short_name": "Ludo Pro",
+  "description": "2 to 6 Players Ludo with traditional Indian Goti Kaato Rule, smart bots and offline Android support.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b0f19",
+  "theme_color": "#0b0f19",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
