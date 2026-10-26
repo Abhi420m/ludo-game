@@ -280,7 +280,7 @@ class LudoGame {
   }
 
   // Execute a move for chosen token
-  moveToken(tokenId) {
+  async moveToken(tokenId) {
     if (this.turnState !== 'WAITING_FOR_MOVE') return false;
 
     const move = this.validMoves.find((m) => m.tokenId === tokenId);
@@ -356,17 +356,20 @@ class LudoGame {
             this.winnerRankings.push(remaining);
           }
           this.onGameOver(this.winnerRankings);
-          this.onTokenMoved(player, token, prevPos, move, victimToken);
-          this.onStateChange();
-          return true;
         }
       }
     }
 
-    this.onTokenMoved(player, token, prevPos, move, victimToken);
+    // Await step-by-step hopping animation so players clearly see which goti moved!
+    await this.onTokenMoved(player, token, prevPos, move, victimToken);
 
-    // Turn resolution
-    if (getsBonusRoll && !this.gameOver) {
+    if (this.gameOver) {
+      this.onStateChange();
+      return true;
+    }
+
+    // Turn resolution after animation finishes
+    if (getsBonusRoll) {
       this.turnState = 'WAITING_FOR_ROLL';
       this.onBonusRoll(player, this.currentRoll === 6 ? 'SIX' : victimToken ? 'KILL' : 'HOME');
       this.onStateChange();

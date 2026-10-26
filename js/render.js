@@ -716,6 +716,147 @@ class BoardRenderer {
   }
 
   /* ----------------------------------------------------
+     STEP-BY-STEP HOPPING ANIMATION ("Kon se goti chali ho")
+  ---------------------------------------------------- */
+  calculateWaypoints(player, prevPos, move) {
+    const cfg = this.game.boardConfig;
+    const N = cfg.totalOuterTiles;
+    const waypoints = [];
+
+    if (move.action === 'EXIT_BASE') {
+      const startPt = this.getTokenCoordinates({ state: 'TRACK', trackIndex: player.config.startIndex }, player);
+      if (startPt) waypoints.push(startPt);
+      return waypoints;
+    }
+
+    if (move.action === 'MOVE_TRACK' || move.action === 'BYPASS_LOCKED_GATE') {
+      const steps = move.destination.stepsTraveled - prevPos.stepsTraveled;
+      for (let s = 1; s <= steps; s++) {
+        const tIdx = (prevPos.trackIndex + s) % N;
+        const pt = this.getTokenCoordinates({ state: 'TRACK', trackIndex: tIdx }, player);
+        if (pt) waypoints.push(pt);
+      }
+      return waypoints;
+    }
+
+    if (move.action === 'ENTER_HOME_PATH' || move.action === 'ENTER_CENTER_HOME') {
+      if (prevPos.state === 'TRACK') {
+        const stepsToTurn = (player.config.turnIndex - prevPos.trackIndex + N) % N;
+        for (let s = 1; s <= stepsToTurn; s++) {
+          const tIdx = (prevPos.trackIndex + s) % N;
+          const pt = this.getTokenCoordinates({ state: 'TRACK', trackIndex: tIdx }, player);
+          if (pt) waypoints.push(pt);
+        }
+
+        const totalSteps = move.destination.stepsTraveled - prevPos.stepsTraveled;
+        const stepsIntoHome = totalSteps - stepsToTurn;
+
+        for (let h = 0; h < stepsIntoHome; h++) {
+          if (h < cfg.homePathLength) {
+            const pt = this.getTokenCoordinates({ state: 'HOME_PATH', homeStep: h }, player);
+            if (pt) waypoints.push(pt);
+          } else {
+            const pt = this.getTokenCoordinates({ state: 'FINISHED' }, player);
+            if (pt) waypoints.push(pt);
+          }
+        }
+      } else if (prevPos.state === 'HOME_PATH') {
+        const targetStep = move.destination.homeStep;
+        for (let h = prevPos.homeStep + 1; h <= targetStep; h++) {
+          if (h < cfg.homePathLength) {
+            const pt = this.getTokenCoordinates({ state: 'HOME_PATH', homeStep: h }, player);
+            if (pt) waypoints.push(pt);
+          } else {
+            const pt = this.getTokenCoordinates({ state: 'FINISHED' }, player);
+            if (pt) waypoints.push(pt);
+          }
+        }
+      }
+      return waypoints;
+    }
+
+    if (move.action === 'MOVE_HOME_PATH') {
+      const targetStep = move.destination.homeStep;
+      for (let h = prevPos.homeStep + 1; h <= targetStep; h++) {
+        const pt = this.getTokenCoordinates({ state: 'HOME_PATH', homeStep: h }, player);
+        if (pt) waypoints.push(pt);
+      }
+      return waypoints;
+    }
+
+    return waypoints;
+  }
+
+  async animateTokenHop(player, token, prevPos, move, victimToken) {
+    const waypoints = this.calculateWaypoints(player, prevPos, move);
+    if (!waypoints || waypoints.length === 0) {
+      this.renderBoard();
+      return;
+    }
+
+    const hopDuration = 100; // ms per hop (fast, snappy, like real ludo apps!)
+    const S = this.game.boardType === 4 ? 1000 / 15 : 44;
+    const radius = this.game.boardType === 4 ? S * 0.42 : 24;
+
+    // Temporary hopping token element placed on top layer
+    const hopG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    hopG.setAttribute('class', 'token-group hopping-active');
+    hopG.style.pointerEvents = 'none';
+
+    // Badge showing "+roll" above the hopping token
+    const rollBadge = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    rollBadge.setAttribute('transform', 'translate(0, -32)');
+    rollBadge.innerHTML = `
+      <rect x="-24" y="-10" width="48" height="20" rx="10" fill="#f59e0b" stroke="#ffffff" stroke-width="1.5" filter="url(#shadow)"/>
+      <text text-anchor="middle" dy="0.35em" font-size="11" font-weight="900" fill="#0f172a">+${this.game.currentRoll}</text>
+    `;
+    hopG.appendChild(rollBadge);
+
+    hopG.innerHTML += `
+      <circle r="${radius * 1.6}" fill="${player.config.hex}" opacity="0.55" class="token-aura"/>
+      <circle r="${radius}" fill="url(#grad-${player.colorKey})" stroke="#ffffff" stroke-width="3" filter="url(#token-shadow)"/>
+      <circle r="${radius * 0.92}" fill="url(#specular)"/>
+      <circle r="${radius * 0.38}" fill="#ffffff" opacity="0.95"/>
+      <text text-anchor="middle" dy="0.35em" font-size="${radius * 0.6}" font-weight="bold" fill="${player.config.darkHex || '#000'}">${token.id + 1}</text>
+    `;
+
+    // Hide original token in static board render while hopping
+    this.renderBoard();
+    const origTokenEl = this.svg.querySelector(`[data-token-id="${token.id}"][data-player-id="${player.id}"]`);
+    if (origTokenEl) origTokenEl.style.opacity = '0';
+
+    this.svg.appendChild(hopG);
+
+    // Initial position
+    const startCoord = this.getTokenCoordinates(prevPos, player) || waypoints[0];
+    hopG.setAttribute('transform', `translate(${startCoord.x}, ${startCoord.y})`);
+
+    // Hop sequentially through all waypoints!
+    for (let i = 0; i < waypoints.length; i++) {
+      const pt = waypoints[i];
+      hopG.setAttribute('transform', `translate(${pt.x}, ${pt.y})`);
+      if (window.soundEngine) window.soundEngine.playTokenStep();
+
+      // Hop arc animation
+      hopG.classList.add('jump-arc');
+      await new Promise((r) => setTimeout(r, hopDuration));
+      hopG.classList.remove('jump-arc');
+    }
+
+    hopG.remove();
+
+    if (victimToken) {
+      if (window.soundEngine) window.soundEngine.playTokenKill();
+      this.spawnConfetti(35);
+      const board = document.getElementById('ludo-board');
+      board?.classList.add('screen-shake');
+      setTimeout(() => board?.classList.remove('screen-shake'), 350);
+    }
+
+    this.renderBoard();
+  }
+
+  /* ----------------------------------------------------
      TOKEN RENDERING WITH 3D SHINE & MULTI-STACKING
   ---------------------------------------------------- */
   renderTokens() {
@@ -851,6 +992,23 @@ class BoardRenderer {
       };
       g.addEventListener('touchstart', handleTap, { passive: false });
       g.addEventListener('click', handleTap);
+    } else if (token.state === 'BASE' && player.id === currentPlayer?.id) {
+      // Feedback when user tries to tap base token without a 6!
+      g.style.cursor = 'not-allowed';
+      const handleBlockedTap = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (window.soundEngine) window.soundEngine.playError();
+        if (window.uiController) {
+          window.uiController.showToast(
+            window.uiController.lang === 'hi' ? '⚠️ गोटी सिर्फ 6 आने पर खुलती है!' : '⚠️ Token opens ONLY on rolling 6!',
+            'warning'
+          );
+          window.uiController.vibrate([30, 20, 30]);
+        }
+      };
+      g.addEventListener('touchstart', handleBlockedTap, { passive: false });
+      g.addEventListener('click', handleBlockedTap);
     }
 
     container.appendChild(g);

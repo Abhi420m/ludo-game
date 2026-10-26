@@ -1,9 +1,9 @@
 /* ----------------------------------------------------
-   3D DICE & INTERACTION ANIMATIONS
+   3D DICE & INTERACTION ANIMATIONS (Fast & Snappy)
 ---------------------------------------------------- */
 
 .dice-cube.rolling {
-  animation: roll3d 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+  animation: roll3d 0.35s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 @keyframes roll3d {
@@ -22,6 +22,29 @@
   100% {
     transform: rotateX(720deg) rotateY(720deg) rotateZ(360deg) scale(1);
   }
+}
+
+/* Fast Token Hop Jump Arc Animation */
+.jump-arc {
+  animation: hopJump 0.1s cubic-bezier(0.25, 1, 0.5, 1);
+  transform-origin: center bottom;
+}
+
+@keyframes hopJump {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-16px) scale(1.28);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+.hopping-active {
+  filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 12px #f59e0b);
+  z-index: 1000;
 }
 
 /* Screen / Element Shake on Token Cut */

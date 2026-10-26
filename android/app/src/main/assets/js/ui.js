@@ -356,8 +356,12 @@ class UIController {
       onDiceRolled: (val, player, penalty) => {
         this.animateDiceRoll(val, penalty);
       },
-      onTokenMoved: (player, token, prev, move, victim) => {
-        this.renderer.renderBoard(); // Update token locations & locks
+      onTokenMoved: async (player, token, prev, move, victim) => {
+        if (this.renderer) {
+          await this.renderer.animateTokenHop(player, token, prev, move, victim);
+        } else {
+          this.renderer.renderBoard();
+        }
         if (this.game.turnState === 'WAITING_FOR_ROLL') {
           this.checkBotTurn();
         }
@@ -485,8 +489,7 @@ class UIController {
         this.renderer.renderBoard();
       }
 
-      // If all valid moves are base exits (e.g. rolled 6 with only base tokens) or only 1 move:
-      // Auto-move right away so friends can just tap the dice and play!
+      // Fast auto-move when only 1 choice or all base exits
       const allExitBase = this.game.validMoves.length > 0 && this.game.validMoves.every(m => m.action === 'EXIT_BASE');
       if ((allExitBase || this.game.validMoves.length === 1) && !this.game.getCurrentPlayer().isBot) {
         setTimeout(() => {
@@ -494,9 +497,9 @@ class UIController {
             window.soundEngine.playTokenStep();
             this.game.moveToken(this.game.validMoves[0].tokenId);
           }
-        }, 350);
+        }, 240);
       }
-    }, 450);
+    }, 350);
   }
 
   animateDiceRoll(value, penalty) {
