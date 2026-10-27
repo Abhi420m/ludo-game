@@ -146,3 +146,27 @@
   75% { transform: rotate(-10deg) scale(1.08); }
   100% { transform: rotate(0deg) scale(1); }
 }
+
+/* Player External Kotha Box & Active Turn Glow */
+.player-kotha-box {
+  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.player-kotha-box.kotha-active {
+  filter: drop-shadow(0 0 14px rgba(251, 191, 36, 0.85));
+}
+
+.active-kotha-aura {
+  animation: pulseKothaAura 1.5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes pulseKothaAura {
+  0%, 100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+

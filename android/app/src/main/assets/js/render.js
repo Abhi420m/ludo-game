@@ -1,14 +1,14 @@
 /**
- * Ludo Board & Token SVG Renderer - Authentic Ludo King 3D Style
- * Supports both 4-Player Square Board and 6-Player Hexagon Board.
+ * Ludo Board & Token SVG Renderer - Authentic Design Matching Reference Image
  * Features:
- * - Authentic 3D Ludo King Pawns (Sphere Head + Golden Collar + Bell Body + Pedestal Base)
- * - Animated Idle Bobbing & Golden Aura for movable tokens
- * - Step-by-step Fast Hopping Animation with +roll indicator
- * - Safe Star Tiles & Directional Start Arrows
- * - Home Gate Lock/Unlock (🔒/🔓) Indicators for traditional kill rule
- * - Corner Dice with single-tap roll support
- * - Confetti celebrations & screen shake
+ * - 4 Player Corners (Player 1 Blue, Player 2 Red, Player 3 Green, Player 4 Yellow)
+ * - Authentic 3D Star Gotis (Pucks with Concentric 3D Rings & Embossed Central Star ⭐)
+ * - 4 External Player Dice Boxes (Kota) at Top & Bottom with Directional Pointer Arrow
+ * - Active Dice & "🎲 TAP" prompt displayed ONLY on current player's side ("kota jiski chance hai auski hi taraf show kare")
+ * - Slower, visible step-by-step hopping animation (260ms) ("chalne ki speed thoda slow karo jise dike chalte hua")
+ * - Team Badges (A for Blue & Green, B for Red & Yellow)
+ * - Traditional Kill / Tod lock indicators (🔒/🔓) at Home Entrances
+ * - Safe Star tiles ⭐ and Directional Track Arrows
  */
 
 class BoardRenderer {
@@ -75,206 +75,197 @@ class BoardRenderer {
         </feMerge>
       </filter>
 
-      <!-- Golden neck collar gradient (Ludo King Signature) -->
-      <linearGradient id="gold-ring" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stop-color="#fef08a"/>
-        <stop offset="35%" stop-color="#f59e0b"/>
-        <stop offset="70%" stop-color="#d97706"/>
-        <stop offset="100%" stop-color="#78350f"/>
-      </linearGradient>
-
-      <!-- Golden aura for movable pawns -->
+      <!-- Golden aura for movable tokens -->
       <radialGradient id="gold-aura" cx="50%" cy="50%" r="50%">
         <stop offset="0%" stop-color="#fbbf24" stop-opacity="0.85"/>
         <stop offset="60%" stop-color="#f59e0b" stop-opacity="0.45"/>
         <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
       </radialGradient>
 
-      <!-- Star Graphic Template -->
-      <g id="star-icon">
+      <!-- Outlined Safe Tile Star (Matching user's reference image) -->
+      <g id="star-tile-icon">
         <polygon points="0,-13 4,-4 14,-4 6,2 9,12 0,6 -9,12 -6,2 -14,-4 -4,-4"
-                 fill="#f59e0b" stroke="#92400e" stroke-width="1.6" filter="url(#shadow)"/>
-        <circle cx="0" cy="1" r="2.5" fill="#fef08a"/>
+                 fill="#ffffff" stroke="#1e293b" stroke-width="1.8"/>
       </g>
 
-      <!-- Directional Track Arrows (Ludo King Start Tiles) -->
+      <!-- Directional Track Arrows (col 7 row 14, col 0 row 7, etc.) -->
       <g id="arrow-up">
-        <path d="M 0,-14 L 11,2 L 4,2 L 4,12 L -4,12 L -4,2 L -11,2 Z" fill="#ffffff" opacity="0.9" filter="url(#shadow)"/>
+        <path d="M 0,-13 L 9,2 L 3.5,2 L 3.5,12 L -3.5,12 L -3.5,2 L -9,2 Z" fill="#0072bc" stroke="#ffffff" stroke-width="1.2"/>
       </g>
       <g id="arrow-down">
-        <path d="M 0,14 L 11,-2 L 4,-2 L 4,-12 L -4,-12 L -4,-2 L -11,-2 Z" fill="#ffffff" opacity="0.9" filter="url(#shadow)"/>
+        <path d="M 0,13 L 9,-2 L 3.5,-2 L 3.5,-12 L -3.5,-12 L -3.5,-2 L -9,-2 Z" fill="#00a651" stroke="#ffffff" stroke-width="1.2"/>
       </g>
       <g id="arrow-right">
-        <path d="M 14,0 L -2,-11 L -2,-4 L -12,-4 L -12,4 L -2,4 L -2,11 Z" fill="#ffffff" opacity="0.9" filter="url(#shadow)"/>
+        <path d="M 13,0 L -2,-9 L -2,-3.5 L -12,-3.5 L -12,3.5 L -2,3.5 L -2,9 Z" fill="#e52521" stroke="#ffffff" stroke-width="1.2"/>
       </g>
       <g id="arrow-left">
-        <path d="M -14,0 L 2,-11 L 2,-4 L 12,-4 L 12,4 L 2,4 L 2,11 Z" fill="#ffffff" opacity="0.9" filter="url(#shadow)"/>
+        <path d="M -13,0 L 2,-9 L 2,-3.5 L 12,-3.5 L 12,3.5 L 2,3.5 L 2,9 Z" fill="#fdb813" stroke="#ffffff" stroke-width="1.2"/>
       </g>
     `;
 
-    // 3D Gradients for all player colors
-    const allColors = {
+    // 3D Gradients for Goti Pucks matching image
+    const colorsMeta = {
+      blue: { hex: '#0072bc', lightHex: '#60a5fa', darkHex: '#003e6b' },
       red: { hex: '#e52521', lightHex: '#ff7b78', darkHex: '#8b0e0c' },
       green: { hex: '#00a651', lightHex: '#52d98c', darkHex: '#005c2d' },
       yellow: { hex: '#fdb813', lightHex: '#fef08a', darkHex: '#996a00' },
-      blue: { hex: '#0072bc', lightHex: '#60a5fa', darkHex: '#003e6b' },
       purple: { hex: '#9333ea', lightHex: '#c084fc', darkHex: '#581c87' },
       orange: { hex: '#ea580c', lightHex: '#fdba74', darkHex: '#9a3412' }
     };
 
-    Object.keys(allColors).forEach((key) => {
-      const c = allColors[key];
+    Object.keys(colorsMeta).forEach((key) => {
+      const c = colorsMeta[key];
 
-      // 1. Head Radial Gradient (3D Sphere shine)
-      const gradHead = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
-      gradHead.setAttribute('id', `pawn-head-${key}`);
-      gradHead.setAttribute('cx', '32%');
-      gradHead.setAttribute('cy', '30%');
-      gradHead.setAttribute('r', '68%');
-      gradHead.innerHTML = `
-        <stop offset="0%" stop-color="${c.lightHex}"/>
-        <stop offset="42%" stop-color="${c.hex}"/>
-        <stop offset="100%" stop-color="${c.darkHex}"/>
-      `;
-      defs.appendChild(gradHead);
-
-      // 2. Body Linear Gradient (Cylindrical shine)
-      const gradBody = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-      gradBody.setAttribute('id', `pawn-body-${key}`);
-      gradBody.setAttribute('x1', '0%');
-      gradBody.setAttribute('y1', '0%');
-      gradBody.setAttribute('x2', '100%');
-      gradBody.setAttribute('y2', '0%');
+      // Outer Torus Ring Gradient
+      const gradBody = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+      gradBody.setAttribute('id', `token-body-${key}`);
+      gradBody.setAttribute('cx', '35%');
+      gradBody.setAttribute('cy', '32%');
+      gradBody.setAttribute('r', '68%');
       gradBody.innerHTML = `
         <stop offset="0%" stop-color="${c.lightHex}"/>
-        <stop offset="30%" stop-color="${c.hex}"/>
-        <stop offset="75%" stop-color="${c.hex}"/>
+        <stop offset="45%" stop-color="${c.hex}"/>
         <stop offset="100%" stop-color="${c.darkHex}"/>
       `;
       defs.appendChild(gradBody);
 
-      // 3. Base Pedestal Linear Gradient
-      const gradBase = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
-      gradBase.setAttribute('id', `pawn-base-${key}`);
-      gradBase.setAttribute('x1', '0%');
-      gradBase.setAttribute('y1', '0%');
-      gradBase.setAttribute('x2', '0%');
-      gradBase.setAttribute('y2', '100%');
-      gradBase.innerHTML = `
+      // Inner Center Disc Gradient
+      const gradHead = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+      gradHead.setAttribute('id', `token-head-${key}`);
+      gradHead.setAttribute('cx', '35%');
+      gradHead.setAttribute('cy', '32%');
+      gradHead.setAttribute('r', '65%');
+      gradHead.innerHTML = `
         <stop offset="0%" stop-color="${c.lightHex}"/>
-        <stop offset="35%" stop-color="${c.hex}"/>
+        <stop offset="50%" stop-color="${c.hex}"/>
         <stop offset="100%" stop-color="${c.darkHex}"/>
       `;
-      defs.appendChild(gradBase);
-
-      // 4. Legacy compatibility gradient
-      const gradLegacy = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
-      gradLegacy.setAttribute('id', `grad-${key}`);
-      gradLegacy.setAttribute('cx', '35%');
-      gradLegacy.setAttribute('cy', '35%');
-      gradLegacy.setAttribute('r', '70%');
-      gradLegacy.innerHTML = `
-        <stop offset="0%" stop-color="${c.lightHex}"/>
-        <stop offset="60%" stop-color="${c.hex}"/>
-        <stop offset="100%" stop-color="${c.darkHex}"/>
-      `;
-      defs.appendChild(gradLegacy);
+      defs.appendChild(gradHead);
     });
 
     this.svg.appendChild(defs);
   }
 
   /* ----------------------------------------------------
-     4-PLAYER BOARD RENDERING (Ludo King Classic)
+     4-PLAYER BOARD RENDERING (Matches User Reference Image)
   ---------------------------------------------------- */
   renderBoard4() {
+    this.svg.setAttribute('viewBox', '0 -130 1000 1260');
     const S = 1000 / 15; // 66.666px
     const cfg = this.game.boardConfig;
+    const currentPlayer = this.game.getCurrentPlayer();
 
     const boardGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     boardGroup.setAttribute('id', 'board-layer');
 
-    // 1. Board Background (Clean Ivory Canvas with Subtle Border)
+    // 1. Board Background Canvas
     const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    bg.setAttribute('x', '0');
+    bg.setAttribute('y', '0');
     bg.setAttribute('width', '1000');
     bg.setAttribute('height', '1000');
-    bg.setAttribute('fill', '#fcfbf7');
-    bg.setAttribute('rx', '22');
+    bg.setAttribute('fill', '#ffffff');
+    bg.setAttribute('rx', '14');
+    bg.setAttribute('stroke', '#1e293b');
+    bg.setAttribute('stroke-width', '2');
     boardGroup.appendChild(bg);
 
-    // 2. Base Yards (4 corners)
+    // 2. Base Yards (4 corners) matching user image:
+    // Top-Left: Player 2 (Red) [Team B]
+    // Top-Right: Player 3 (Green) [Team A]
+    // Bottom-Left: Player 1 (Blue) [Team A]
+    // Bottom-Right: Player 4 (Yellow) [Team B]
     const bases = [
-      { key: 'green', x: 0, y: 0 },
-      { key: 'yellow', x: 9 * S, y: 0 },
-      { key: 'red', x: 0, y: 9 * S },
-      { key: 'blue', x: 9 * S, y: 9 * S }
+      { key: 'red', x: 0, y: 0, label: 'Player 2', labelX: 25, labelY: 3 * S, rot: -90, team: 'B', teamX: 5.3 * S, teamY: 5.3 * S, teamBg: '#eab308', teamColor: '#b45309' },
+      { key: 'green', x: 9 * S, y: 0, label: 'Player 3', labelX: 12 * S, labelY: 28, rot: 0, team: 'A', teamX: 9.7 * S, teamY: 5.3 * S, teamBg: '#38bdf8', teamColor: '#0369a1' },
+      { key: 'blue', x: 0, y: 9 * S, label: 'Player 1', labelX: 3 * S, labelY: 15 * S - 12, rot: 0, team: 'A', teamX: 5.3 * S, teamY: 9.7 * S, teamBg: '#38bdf8', teamColor: '#0369a1' },
+      { key: 'yellow', x: 9 * S, y: 9 * S, label: 'Player 4', labelX: 15 * S - 15, labelY: 12 * S, rot: 90, team: 'B', teamX: 9.7 * S, teamY: 9.7 * S, teamBg: '#eab308', teamColor: '#b45309' }
     ];
 
-    bases.forEach(({ key, x, y }) => {
-      const c = cfg.colors[key];
+    bases.forEach((b) => {
+      const c = cfg.colors[b.key];
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const isTurn = currentPlayer && currentPlayer.colorKey === b.key;
 
-      // Base colored card
+      // Base colored rectangle
       const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      rect.setAttribute('x', x);
-      rect.setAttribute('y', y);
+      rect.setAttribute('x', b.x);
+      rect.setAttribute('y', b.y);
       rect.setAttribute('width', 6 * S);
       rect.setAttribute('height', 6 * S);
       rect.setAttribute('fill', c.hex);
-      rect.setAttribute('stroke', '#0f172a');
-      rect.setAttribute('stroke-width', '2.5');
-      rect.setAttribute('rx', '18');
+      rect.setAttribute('stroke', isTurn ? '#fbbf24' : '#0f172a');
+      rect.setAttribute('stroke-width', isTurn ? '4' : '2');
+      rect.setAttribute('rx', '16');
       g.appendChild(rect);
 
-      // Inner white card
+      // Active Kotha (Corner) Glowing Highlight for Current Player
+      if (isTurn) {
+        const activeAura = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        activeAura.setAttribute('class', 'active-kotha-aura');
+        activeAura.setAttribute('x', b.x - 3);
+        activeAura.setAttribute('y', b.y - 3);
+        activeAura.setAttribute('width', 6 * S + 6);
+        activeAura.setAttribute('height', 6 * S + 6);
+        activeAura.setAttribute('rx', '18');
+        activeAura.setAttribute('fill', 'none');
+        activeAura.setAttribute('stroke', '#fbbf24');
+        activeAura.setAttribute('stroke-width', '5');
+        activeAura.setAttribute('filter', 'url(#gold-glow)');
+        g.appendChild(activeAura);
+      }
+
+      // Player Label on the border (matching image: "Player 1", "Player 2", etc.)
+      const lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      lbl.setAttribute('x', b.labelX);
+      lbl.setAttribute('y', b.labelY);
+      lbl.setAttribute('text-anchor', 'middle');
+      lbl.setAttribute('font-size', '18');
+      lbl.setAttribute('font-weight', '900');
+      lbl.setAttribute('fill', '#ffffff');
+      lbl.setAttribute('letter-spacing', '1');
+      if (b.rot !== 0) {
+        lbl.setAttribute('transform', `rotate(${b.rot} ${b.labelX} ${b.labelY})`);
+      }
+      lbl.textContent = b.label;
+      g.appendChild(lbl);
+
+      // Inner white square container (holding 4 gotis)
       const inner = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      inner.setAttribute('x', x + 0.7 * S);
-      inner.setAttribute('y', y + 0.7 * S);
-      inner.setAttribute('width', 4.6 * S);
-      inner.setAttribute('height', 4.6 * S);
+      inner.setAttribute('x', b.x + 1 * S);
+      inner.setAttribute('y', b.y + 1 * S);
+      inner.setAttribute('width', 4 * S);
+      inner.setAttribute('height', 4 * S);
       inner.setAttribute('fill', '#ffffff');
-      inner.setAttribute('rx', '22');
-      inner.setAttribute('filter', 'url(#shadow)');
+      inner.setAttribute('stroke', '#cbd5e1');
+      inner.setAttribute('stroke-width', '1.5');
+      inner.setAttribute('rx', '20');
       g.appendChild(inner);
 
-      // 4 Token sockets (Recessed colored circular trays)
+      // 4 Circular Goti Sockets inside the white square (Ludo King Signature)
       c.baseSlots.forEach((slot) => {
-        const sx = slot.c * S;
-        const sy = slot.r * S;
-
-        // Outer socket rim
-        const outerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        outerCircle.setAttribute('cx', sx);
-        outerCircle.setAttribute('cy', sy);
-        outerCircle.setAttribute('r', S * 0.44);
-        outerCircle.setAttribute('fill', c.hex);
-        outerCircle.setAttribute('stroke', '#cbd5e1');
-        outerCircle.setAttribute('stroke-width', '2');
-        outerCircle.setAttribute('filter', 'url(#shadow)');
-        g.appendChild(outerCircle);
-
-        // Inner socket well
-        const innerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        innerCircle.setAttribute('cx', sx);
-        innerCircle.setAttribute('cy', sy);
-        innerCircle.setAttribute('r', S * 0.35);
-        innerCircle.setAttribute('fill', '#ffffff');
-        innerCircle.setAttribute('opacity', '0.9');
-        g.appendChild(innerCircle);
-
-        // Center dot
-        const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-        dot.setAttribute('cx', sx);
-        dot.setAttribute('cy', sy);
-        dot.setAttribute('r', S * 0.16);
-        dot.setAttribute('fill', c.hex);
-        g.appendChild(dot);
+        const socketG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        socketG.innerHTML = `
+          <circle cx="${slot.c * S}" cy="${slot.r * S}" r="26" fill="${c.hex}" opacity="0.14"/>
+          <circle cx="${slot.c * S}" cy="${slot.r * S}" r="21" fill="#ffffff" stroke="${c.hex}" stroke-width="2.6" filter="url(#shadow)"/>
+          <circle cx="${slot.c * S}" cy="${slot.r * S}" r="10" fill="${c.hex}" opacity="0.28"/>
+        `;
+        g.appendChild(socketG);
       });
+
+      // Circular Team Badge at the inner corner (A or B matching image!)
+      const teamG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      teamG.setAttribute('transform', `translate(${b.teamX}, ${b.teamY})`);
+      teamG.innerHTML = `
+        <circle r="18" fill="#ffffff" stroke="${b.teamBg}" stroke-width="3" filter="url(#shadow)"/>
+        <text text-anchor="middle" dy="0.35em" font-size="18" font-weight="900" fill="${b.teamColor}">${b.team}</text>
+      `;
+      g.appendChild(teamG);
 
       boardGroup.appendChild(g);
     });
 
-    // 3. Track Cells (52 Outer Cells)
+    // 3. Track Cells (52 Outer Grid Cells)
     cfg.outerTiles.forEach((tile, idx) => {
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       const x = tile.c * S;
@@ -286,37 +277,23 @@ class BoardRenderer {
       rect.setAttribute('width', S);
       rect.setAttribute('height', S);
 
-      // Check if start tile
+      // Check if starting tile
       let cellFill = '#ffffff';
-      let startColor = null;
-      let startArrowDir = null;
-
       Object.keys(cfg.colors).forEach((k) => {
         if (cfg.colors[k].startIndex === idx) {
           cellFill = cfg.colors[k].hex;
-          startColor = cfg.colors[k];
-          startArrowDir = cfg.colors[k].startArrow;
         }
       });
 
       rect.setAttribute('fill', cellFill);
-      rect.setAttribute('stroke', '#cbd5e1');
+      rect.setAttribute('stroke', '#94a3b8');
       rect.setAttribute('stroke-width', '1.5');
       g.appendChild(rect);
 
-      // Start Tile Arrow (Ludo King signature)
-      if (startArrowDir) {
-        const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-        arrow.setAttribute('href', `#arrow-${startArrowDir}`);
-        arrow.setAttribute('x', x + S / 2);
-        arrow.setAttribute('y', y + S / 2);
-        g.appendChild(arrow);
-      }
-
-      // Star Safe Tile icon
+      // Outlined Star on Safe Tiles (matching user's reference image!)
       if (cfg.starTiles.includes(idx)) {
         const star = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-        star.setAttribute('href', '#star-icon');
+        star.setAttribute('href', '#star-tile-icon');
         star.setAttribute('x', x + S / 2);
         star.setAttribute('y', y + S / 2);
         g.appendChild(star);
@@ -325,7 +302,23 @@ class BoardRenderer {
       boardGroup.appendChild(g);
     });
 
-    // 4. Colored Home Paths (5 cells each)
+    // 4. Directional Arrows on Home Entrance Tiles (matching image)
+    const arrows = [
+      { dir: 'up', c: 7, r: 14 },
+      { dir: 'right', c: 0, r: 7 },
+      { dir: 'down', c: 7, r: 0 },
+      { dir: 'left', c: 14, r: 7 }
+    ];
+
+    arrows.forEach((a) => {
+      const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+      arrow.setAttribute('href', `#arrow-${a.dir}`);
+      arrow.setAttribute('x', a.c * S + S / 2);
+      arrow.setAttribute('y', a.r * S + S / 2);
+      boardGroup.appendChild(arrow);
+    });
+
+    // 5. Colored Home Paths (5 cells each)
     Object.keys(cfg.colors).forEach((k) => {
       const c = cfg.colors[k];
       c.homePath.forEach((pt) => {
@@ -336,12 +329,12 @@ class BoardRenderer {
         rect.setAttribute('height', S);
         rect.setAttribute('fill', c.hex);
         rect.setAttribute('stroke', '#ffffff');
-        rect.setAttribute('stroke-width', '1.8');
+        rect.setAttribute('stroke-width', '1.5');
         boardGroup.appendChild(rect);
       });
     });
 
-    // 5. Center Home 3x3 Triangles
+    // 6. Center Home 3x3 Triangles
     const centerGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     const midX = 7.5 * S;
     const midY = 7.5 * S;
@@ -358,43 +351,323 @@ class BoardRenderer {
       poly.setAttribute('points', pts);
       poly.setAttribute('fill', cfg.colors[key].hex);
       poly.setAttribute('stroke', '#0f172a');
-      poly.setAttribute('stroke-width', '2');
+      poly.setAttribute('stroke-width', '1.8');
       centerGroup.appendChild(poly);
     });
 
-    // Center Gold Crown Emblem
-    const crown = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    crown.setAttribute('cx', midX);
-    crown.setAttribute('cy', midY);
-    crown.setAttribute('r', S * 0.46);
-    crown.setAttribute('fill', '#f59e0b');
-    crown.setAttribute('stroke', '#ffffff');
-    crown.setAttribute('stroke-width', '3');
-    crown.setAttribute('filter', 'url(#shadow)');
-    centerGroup.appendChild(crown);
-
-    const crownStar = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-    crownStar.setAttribute('href', '#star-icon');
-    crownStar.setAttribute('x', midX);
-    crownStar.setAttribute('y', midY);
-    crownStar.setAttribute('transform', `scale(0.85) translate(${midX * 0.17}, ${midY * 0.17})`);
-    centerGroup.appendChild(crownStar);
-
     boardGroup.appendChild(centerGroup);
 
-    // 6. Home Gate Lock Indicators (Special Kill Rule visual)
+    // 7. Home Entrance Lock/Unlock Indicators (Traditional Kill / Tod Rule)
     this.renderHomeGateLocks(boardGroup, S);
 
-    // 7. Interactive Corner Dice for Pass & Play (Friends sitting around phone)
-    this.renderCornerDice4(boardGroup, S);
+    // 8. The 4 External Player Dice Boxes (Kotha) matching the Reference Image!
+    this.renderPlayerKothaBoxes(boardGroup, S);
 
     this.svg.appendChild(boardGroup);
+  }
+
+  /* ----------------------------------------------------
+     THE 4 EXTERNAL PLAYER DICE BOXES (KOTHA)
+     Matches the User's Uploaded Reference Image!
+     "kota jiski chance hai auski hi taraf show kare"
+  ---------------------------------------------------- */
+  renderPlayerKothaBoxes(boardGroup, S) {
+    if (this.game.boardType !== 4) return;
+    const currentPlayer = this.game.getCurrentPlayer();
+    if (!currentPlayer) return;
+
+    const activeKey = currentPlayer.colorKey;
+
+    const p1 = this.game.players.find((p) => p.colorKey === 'blue') || this.game.players[0];
+    const p2 = this.game.players.find((p) => p.colorKey === 'red') || this.game.players[1];
+    const p3 = this.game.players.find((p) => p.colorKey === 'green') || this.game.players[2];
+    const p4 = this.game.players.find((p) => p.colorKey === 'yellow') || this.game.players[3];
+
+    // 4 Box specifications placed cleanly outside the 1000x1000 board:
+    // Top-Left: Player 2 (Red) [Team B]
+    // Top-Right: Player 3 (Green) [Team A]
+    // Bottom-Left: Player 1 (Blue) [Team A]
+    // Bottom-Right: Player 4 (Yellow) [Team B]
+    const kothas = [
+      {
+        player: p1,
+        key: 'blue',
+        name: p1?.name || 'Player 1 (Blue)',
+        team: 'A',
+        teamBg: '#38bdf8',
+        teamColor: '#0369a1',
+        x: 15,
+        y: 1025,
+        width: 390,
+        height: 98,
+        gotiX: 68,
+        gotiY: 1074,
+        textX: 115,
+        textY: 1062,
+        trayX: 285,
+        trayY: 1035,
+        side: 'bottom'
+      },
+      {
+        player: p4,
+        key: 'yellow',
+        name: p4?.name || 'Player 4 (Yellow)',
+        team: 'B',
+        teamBg: '#eab308',
+        teamColor: '#b45309',
+        x: 595,
+        y: 1025,
+        width: 390,
+        height: 98,
+        gotiX: 932,
+        gotiY: 1074,
+        textX: 715,
+        textY: 1062,
+        trayX: 615,
+        trayY: 1035,
+        side: 'bottom'
+      },
+      {
+        player: p2,
+        key: 'red',
+        name: p2?.name || 'Player 2 (Red)',
+        team: 'B',
+        teamBg: '#eab308',
+        teamColor: '#b45309',
+        x: 15,
+        y: -115,
+        width: 390,
+        height: 98,
+        gotiX: 68,
+        gotiY: -66,
+        textX: 115,
+        textY: -76,
+        trayX: 285,
+        trayY: -105,
+        side: 'top'
+      },
+      {
+        player: p3,
+        key: 'green',
+        name: p3?.name || 'Player 3 (Green)',
+        team: 'A',
+        teamBg: '#38bdf8',
+        teamColor: '#0369a1',
+        x: 595,
+        y: -115,
+        width: 390,
+        height: 98,
+        gotiX: 932,
+        gotiY: -66,
+        textX: 715,
+        textY: -76,
+        trayX: 615,
+        trayY: -105,
+        side: 'top'
+      }
+    ];
+
+    kothas.forEach((k) => {
+      const c = this.game.boardConfig.colors[k.key];
+      const isTurn = activeKey === k.key;
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.setAttribute('class', `player-kotha-box ${isTurn ? 'kotha-active' : ''}`);
+
+      // Background Card
+      const card = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      card.setAttribute('x', k.x);
+      card.setAttribute('y', k.y);
+      card.setAttribute('width', k.width);
+      card.setAttribute('height', k.height);
+      card.setAttribute('rx', '18');
+      card.setAttribute('fill', isTurn ? '#1e293b' : '#0f172a');
+      card.setAttribute('stroke', isTurn ? '#fbbf24' : c.hex);
+      card.setAttribute('stroke-width', isTurn ? '4' : '2');
+      card.setAttribute('filter', isTurn ? 'url(#gold-glow)' : 'url(#shadow)');
+      g.appendChild(card);
+
+      // Mini 3D Token Preview
+      const miniGoti = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      miniGoti.setAttribute('transform', `translate(${k.gotiX}, ${k.gotiY}) scale(0.85)`);
+      miniGoti.innerHTML = `
+        <circle r="18" fill="url(#token-body-${k.key})" stroke="#ffffff" stroke-width="1.8" filter="url(#shadow)"/>
+        <circle r="11" fill="url(#token-head-${k.key})"/>
+        <polygon points="0,-6 1.8,-1.8 6,-1.8 2.6,0.8 3.8,4.5 0,2 -3.8,4.5 -2.6,0.8 -6,-1.8 -1.8,-1.8" fill="#ffffff"/>
+      `;
+      g.appendChild(miniGoti);
+
+      // Player Name & Turn / Team Info
+      const textG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      textG.innerHTML = `
+        <text x="${k.textX}" y="${k.textY}" font-size="16" font-weight="900" fill="#ffffff">${k.name}</text>
+        <text x="${k.textX}" y="${k.textY + 22}" font-size="12" font-weight="700" fill="${isTurn ? '#fbbf24' : '#94a3b8'}">
+          ${isTurn ? (this.game.turnState === 'WAITING_FOR_ROLL' ? '🎲 पासा फेंकें' : '⏩ गोटी चुनें') : `टीम ${k.team} • पक्की: ${k.player?.tokensFinished || 0}/4`}
+        </text>
+      `;
+      g.appendChild(textG);
+
+      // Die Tray
+      const tray = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      tray.setAttribute('x', k.trayX);
+      tray.setAttribute('y', k.trayY);
+      tray.setAttribute('width', '90');
+      tray.setAttribute('height', '76');
+      tray.setAttribute('rx', '12');
+      tray.setAttribute('fill', isTurn ? '#ffffff' : '#1e293b');
+      tray.setAttribute('stroke', isTurn ? c.hex : '#334155');
+      tray.setAttribute('stroke-width', '2');
+      g.appendChild(tray);
+
+      // Die Tray Center
+      const diceCenterX = k.trayX + 45;
+      const diceCenterY = k.trayY + 38;
+
+      if (isTurn) {
+        const diceVal = this.game.currentRoll || 6;
+        const diceG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        diceG.setAttribute('class', 'corner-dice active-turn');
+        diceG.setAttribute('transform', `translate(${diceCenterX}, ${diceCenterY})`);
+
+        // Pulsing active aura
+        const aura = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        aura.setAttribute('class', 'dice-aura');
+        aura.setAttribute('x', '-26');
+        aura.setAttribute('y', '-26');
+        aura.setAttribute('width', '52');
+        aura.setAttribute('height', '52');
+        aura.setAttribute('rx', '12');
+        aura.setAttribute('fill', c.hex);
+        aura.setAttribute('opacity', '0.45');
+        diceG.appendChild(aura);
+
+        // 3D White Die Box
+        const dieBox = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        dieBox.setAttribute('x', '-22');
+        dieBox.setAttribute('y', '-22');
+        dieBox.setAttribute('width', '44');
+        dieBox.setAttribute('height', '44');
+        dieBox.setAttribute('rx', '10');
+        dieBox.setAttribute('fill', '#ffffff');
+        dieBox.setAttribute('stroke', c.hex);
+        dieBox.setAttribute('stroke-width', '2.5');
+        dieBox.setAttribute('filter', 'url(#pawn-shadow)');
+        diceG.appendChild(dieBox);
+
+        // Draw Pips
+        this.drawDicePips(diceG, diceVal, 44);
+
+        // "TAP" floating badge
+        if (this.game.turnState === 'WAITING_FOR_ROLL' || this.game.turnState === 'WAITING_FOR_MOVE') {
+          const badgeG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          const badgeOffsetY = k.side === 'bottom' ? -34 : 34;
+          badgeG.setAttribute('transform', `translate(0, ${badgeOffsetY})`);
+          badgeG.setAttribute('class', 'dice-tap-badge');
+
+          const badgeRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          badgeRect.setAttribute('x', '-30');
+          badgeRect.setAttribute('y', '-11');
+          badgeRect.setAttribute('width', '60');
+          badgeRect.setAttribute('height', '22');
+          badgeRect.setAttribute('rx', '11');
+          badgeRect.setAttribute('fill', '#f59e0b');
+          badgeRect.setAttribute('stroke', '#ffffff');
+          badgeRect.setAttribute('stroke-width', '1.8');
+          badgeG.appendChild(badgeRect);
+
+          const badgeTxt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          badgeTxt.setAttribute('text-anchor', 'middle');
+          badgeTxt.setAttribute('dy', '0.35em');
+          badgeTxt.setAttribute('font-size', '11');
+          badgeTxt.setAttribute('font-weight', '900');
+          badgeTxt.setAttribute('fill', '#0f172a');
+          badgeTxt.textContent = this.game.turnState === 'WAITING_FOR_ROLL' ? '🎲 TAP' : '⏩ MOVE';
+          badgeG.appendChild(badgeTxt);
+
+          diceG.appendChild(badgeG);
+        }
+
+        // Tap Handler to roll directly from their box!
+        if (!currentPlayer.isBot) {
+          g.style.cursor = 'pointer';
+          let lastTap = 0;
+          const handleKothaTap = (e) => {
+            const now = Date.now();
+            if (now - lastTap < 400) return;
+            lastTap = now;
+
+            e.preventDefault();
+            e.stopPropagation();
+            if (window.uiController) {
+              window.uiController.triggerDiceRoll();
+            }
+          };
+
+          g.addEventListener('touchstart', handleKothaTap, { passive: false });
+          g.addEventListener('click', handleKothaTap);
+        }
+
+        g.appendChild(diceG);
+      } else {
+        // Inactive player: show small waiting die
+        const miniDiceG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        miniDiceG.setAttribute('transform', `translate(${diceCenterX}, ${diceCenterY}) opacity(0.6)`);
+        const miniBox = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        miniBox.setAttribute('x', '-16');
+        miniBox.setAttribute('y', '-16');
+        miniBox.setAttribute('width', '32');
+        miniBox.setAttribute('height', '32');
+        miniBox.setAttribute('rx', '8');
+        miniBox.setAttribute('fill', '#334155');
+        miniBox.setAttribute('stroke', '#64748b');
+        miniBox.setAttribute('stroke-width', '1.5');
+        miniDiceG.appendChild(miniBox);
+        g.appendChild(miniDiceG);
+      }
+
+      boardGroup.appendChild(g);
+    });
+
+    // 3D Directional Orange Pointer Arrow between boxes (pointing to active player!)
+    if (activeKey === 'red') {
+      const arr = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      arr.setAttribute('points', '525,-66 475,-66 493,-80 475,-66 493,-52');
+      arr.setAttribute('fill', '#f97316');
+      arr.setAttribute('stroke', '#ffffff');
+      arr.setAttribute('stroke-width', '2.5');
+      arr.setAttribute('filter', 'url(#shadow)');
+      boardGroup.appendChild(arr);
+    } else if (activeKey === 'green') {
+      const arr = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      arr.setAttribute('points', '475,-66 525,-66 507,-80 525,-66 507,-52');
+      arr.setAttribute('fill', '#f97316');
+      arr.setAttribute('stroke', '#ffffff');
+      arr.setAttribute('stroke-width', '2.5');
+      arr.setAttribute('filter', 'url(#shadow)');
+      boardGroup.appendChild(arr);
+    } else if (activeKey === 'blue') {
+      const arr = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      arr.setAttribute('points', '525,1074 475,1074 493,1060 475,1074 493,1088');
+      arr.setAttribute('fill', '#f97316');
+      arr.setAttribute('stroke', '#ffffff');
+      arr.setAttribute('stroke-width', '2.5');
+      arr.setAttribute('filter', 'url(#shadow)');
+      boardGroup.appendChild(arr);
+    } else if (activeKey === 'yellow') {
+      const arr = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      arr.setAttribute('points', '475,1074 525,1074 507,1060 525,1074 507,1088');
+      arr.setAttribute('fill', '#f97316');
+      arr.setAttribute('stroke', '#ffffff');
+      arr.setAttribute('stroke-width', '2.5');
+      arr.setAttribute('filter', 'url(#shadow)');
+      boardGroup.appendChild(arr);
+    }
   }
 
   /* ----------------------------------------------------
      6-PLAYER HEXAGON BOARD RENDERING
   ---------------------------------------------------- */
   renderBoard6() {
+    this.svg.setAttribute('viewBox', '0 0 1000 1000');
     const cfg = this.game.boardConfig;
     const boardGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     boardGroup.setAttribute('id', 'board-layer-6');
@@ -414,7 +687,6 @@ class BoardRenderer {
     hexBg.setAttribute('stroke-width', '6');
     boardGroup.appendChild(hexBg);
 
-    // Inner light polygon
     const innerHex = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
     const innerPoints = [];
     for (let i = 0; i < 6; i++) {
@@ -424,7 +696,7 @@ class BoardRenderer {
       innerPoints.push(`${x.toFixed(1)},${y.toFixed(1)}`);
     }
     innerHex.setAttribute('points', innerPoints.join(' '));
-    innerHex.setAttribute('fill', '#fcfbf7');
+    innerHex.setAttribute('fill', '#ffffff');
     boardGroup.appendChild(innerHex);
 
     // 2. Base Areas (6 corners)
@@ -478,7 +750,7 @@ class BoardRenderer {
 
       if (cfg.starTiles.includes(idx)) {
         const star = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-        star.setAttribute('href', '#star-icon');
+        star.setAttribute('href', '#star-tile-icon');
         star.setAttribute('x', pt.x);
         star.setAttribute('y', pt.y);
         star.setAttribute('transform', `scale(0.8) translate(${pt.x * 0.25}, ${pt.y * 0.25})`);
@@ -523,26 +795,16 @@ class BoardRenderer {
       centerGroup.appendChild(poly);
     }
 
-    const centerStar = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-    centerStar.setAttribute('href', '#star-icon');
-    centerStar.setAttribute('x', '500');
-    centerStar.setAttribute('y', '500');
-    centerStar.setAttribute('transform', 'scale(1.4) translate(-140, -140)');
-    centerGroup.appendChild(centerStar);
-
     boardGroup.appendChild(centerGroup);
 
     // 6. Home Gate Locks
     this.renderHomeGateLocks6(boardGroup);
 
-    // 7. Corner Dice
-    this.renderCornerDice6(boardGroup);
-
     this.svg.appendChild(boardGroup);
   }
 
   /* ----------------------------------------------------
-     HOME GATE LOCK INDICATORS (Special Kill Rule Visual)
+     HOME GATE LOCK INDICATORS (Special Kill / Tod Rule)
   ---------------------------------------------------- */
   renderHomeGateLocks(boardGroup, S) {
     if (!this.game.killRequired) return;
@@ -556,7 +818,7 @@ class BoardRenderer {
       g.setAttribute('class', 'home-gate-lock');
       g.setAttribute('transform', `translate(${pt.c * S + S / 2}, ${pt.r * S + S / 2})`);
 
-      const unlocked = player.hasKilledOpponent;
+      const unlocked = this.game.hasKillPermission(player);
       const icon = unlocked ? '🔓' : '🔒';
       const badgeBg = unlocked ? '#10b981' : '#dc2626';
 
@@ -581,7 +843,7 @@ class BoardRenderer {
       g.setAttribute('class', 'home-gate-lock');
       g.setAttribute('transform', `translate(${pt.x}, ${pt.y})`);
 
-      const unlocked = player.hasKilledOpponent;
+      const unlocked = this.game.hasKillPermission(player);
       const icon = unlocked ? '🔓' : '🔒';
       const badgeBg = unlocked ? '#10b981' : '#dc2626';
 
@@ -595,15 +857,15 @@ class BoardRenderer {
   }
 
   /* ----------------------------------------------------
-     INTERACTIVE CORNER DICE RENDERING (Pass & Play)
+     DICE PIPS DRAWING
   ---------------------------------------------------- */
-  drawDicePips(svgGroup, value, size = 50) {
+  drawDicePips(svgGroup, value, size = 44) {
     const offset = size * 0.25;
     const r = size * 0.09;
 
     const pips = [];
     if (value === 1) {
-      pips.push({ x: 0, y: 0, color: '#e52521', r: r * 1.35 });
+      pips.push({ x: 0, y: 0, color: '#e52521', r: r * 1.4 });
     } else if (value === 2) {
       pips.push({ x: -offset, y: -offset }, { x: offset, y: offset });
     } else if (value === 3) {
@@ -629,205 +891,10 @@ class BoardRenderer {
     });
   }
 
-  renderCornerDice4(boardGroup, S) {
-    const currentPlayer = this.game.getCurrentPlayer();
-    const cornerPositions = {
-      green: { x: 3 * S, y: 3 * S },
-      yellow: { x: 12 * S, y: 3 * S },
-      red: { x: 3 * S, y: 12 * S },
-      blue: { x: 12 * S, y: 12 * S }
-    };
-
-    this.game.players.forEach((player) => {
-      const pos = cornerPositions[player.colorKey];
-      if (!pos) return;
-
-      const isTurn = currentPlayer && currentPlayer.id === player.id;
-      const diceVal = (isTurn && this.game.currentRoll) ? this.game.currentRoll : 6;
-
-      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      g.setAttribute('class', `corner-dice ${isTurn ? 'active-turn' : ''}`);
-      g.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
-
-      // Pulsing aura when it's this player's turn
-      if (isTurn) {
-        const aura = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        aura.setAttribute('class', 'dice-aura');
-        aura.setAttribute('x', '-34');
-        aura.setAttribute('y', '-34');
-        aura.setAttribute('width', '68');
-        aura.setAttribute('height', '68');
-        aura.setAttribute('rx', '18');
-        aura.setAttribute('fill', player.config.hex);
-        aura.setAttribute('opacity', '0.45');
-        g.appendChild(aura);
-      }
-
-      // 3D Dice Box
-      const box = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      box.setAttribute('x', '-25');
-      box.setAttribute('y', '-25');
-      box.setAttribute('width', '50');
-      box.setAttribute('height', '50');
-      box.setAttribute('rx', '13');
-      box.setAttribute('fill', '#ffffff');
-      box.setAttribute('stroke', isTurn ? player.config.hex : '#94a3b8');
-      box.setAttribute('stroke-width', isTurn ? '3.5' : '1.5');
-      box.setAttribute('filter', 'url(#pawn-shadow)');
-      g.appendChild(box);
-
-      // Draw Pips
-      this.drawDicePips(g, diceVal, 50);
-
-      // "TAP" floating prompt badge
-      if (isTurn && (this.game.turnState === 'WAITING_FOR_ROLL' || this.game.turnState === 'WAITING_FOR_MOVE')) {
-        const badgeG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        badgeG.setAttribute('transform', 'translate(0, -36)');
-        badgeG.setAttribute('class', 'dice-tap-badge');
-
-        const badgeRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        badgeRect.setAttribute('x', '-30');
-        badgeRect.setAttribute('y', '-11');
-        badgeRect.setAttribute('width', '60');
-        badgeRect.setAttribute('height', '22');
-        badgeRect.setAttribute('rx', '11');
-        badgeRect.setAttribute('fill', '#f59e0b');
-        badgeRect.setAttribute('stroke', '#ffffff');
-        badgeRect.setAttribute('stroke-width', '1.5');
-        badgeG.appendChild(badgeRect);
-
-        const badgeTxt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        badgeTxt.setAttribute('text-anchor', 'middle');
-        badgeTxt.setAttribute('dy', '0.35em');
-        badgeTxt.setAttribute('font-size', '10');
-        badgeTxt.setAttribute('font-weight', '900');
-        badgeTxt.setAttribute('fill', '#0f172a');
-        badgeTxt.textContent = this.game.turnState === 'WAITING_FOR_ROLL' ? '🎲 TAP' : '⏩ MOVE';
-        badgeG.appendChild(badgeTxt);
-
-        g.appendChild(badgeG);
-      }
-
-      // Tap Handler
-      if (isTurn && !player.isBot) {
-        g.style.cursor = 'pointer';
-        let lastTap = 0;
-        const handleCornerTap = (e) => {
-          const now = Date.now();
-          if (now - lastTap < 400) return;
-          lastTap = now;
-
-          e.preventDefault();
-          e.stopPropagation();
-          if (window.uiController) {
-            window.uiController.triggerDiceRoll();
-          }
-        };
-
-        g.addEventListener('touchstart', handleCornerTap, { passive: false });
-        g.addEventListener('click', handleCornerTap);
-      }
-
-      boardGroup.appendChild(g);
-    });
-  }
-
-  renderCornerDice6(boardGroup) {
-    const cfg = this.game.boardConfig;
-    const currentPlayer = this.game.getCurrentPlayer();
-
-    this.game.players.forEach((player) => {
-      const c = cfg.colors[player.colorKey];
-      if (!c) return;
-
-      const pos = c.baseCenter;
-      const isTurn = currentPlayer && currentPlayer.id === player.id;
-      const diceVal = (isTurn && this.game.currentRoll) ? this.game.currentRoll : 6;
-
-      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      g.setAttribute('class', `corner-dice ${isTurn ? 'active-turn' : ''}`);
-      g.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
-
-      if (isTurn) {
-        const aura = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        aura.setAttribute('class', 'dice-aura');
-        aura.setAttribute('x', '-28');
-        aura.setAttribute('y', '-28');
-        aura.setAttribute('width', '56');
-        aura.setAttribute('height', '56');
-        aura.setAttribute('rx', '14');
-        aura.setAttribute('fill', player.config.hex);
-        aura.setAttribute('opacity', '0.45');
-        g.appendChild(aura);
-      }
-
-      const box = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      box.setAttribute('x', '-22');
-      box.setAttribute('y', '-22');
-      box.setAttribute('width', '44');
-      box.setAttribute('height', '44');
-      box.setAttribute('rx', '10');
-      box.setAttribute('fill', '#ffffff');
-      box.setAttribute('stroke', isTurn ? player.config.hex : '#94a3b8');
-      box.setAttribute('stroke-width', isTurn ? '3' : '1.5');
-      box.setAttribute('filter', 'url(#pawn-shadow)');
-      g.appendChild(box);
-
-      this.drawDicePips(g, diceVal, 44);
-
-      if (isTurn && (this.game.turnState === 'WAITING_FOR_ROLL' || this.game.turnState === 'WAITING_FOR_MOVE')) {
-        const badgeG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        badgeG.setAttribute('transform', 'translate(0, -32)');
-        badgeG.setAttribute('class', 'dice-tap-badge');
-
-        const badgeRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        badgeRect.setAttribute('x', '-26');
-        badgeRect.setAttribute('y', '-9');
-        badgeRect.setAttribute('width', '52');
-        badgeRect.setAttribute('height', '18');
-        badgeRect.setAttribute('rx', '9');
-        badgeRect.setAttribute('fill', '#f59e0b');
-        badgeRect.setAttribute('stroke', '#ffffff');
-        badgeRect.setAttribute('stroke-width', '1.5');
-        badgeG.appendChild(badgeRect);
-
-        const badgeTxt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        badgeTxt.setAttribute('text-anchor', 'middle');
-        badgeTxt.setAttribute('dy', '0.35em');
-        badgeTxt.setAttribute('font-size', '9');
-        badgeTxt.setAttribute('font-weight', '900');
-        badgeTxt.setAttribute('fill', '#0f172a');
-        badgeTxt.textContent = this.game.turnState === 'WAITING_FOR_ROLL' ? '🎲 TAP' : '⏩ MOVE';
-        badgeG.appendChild(badgeTxt);
-
-        g.appendChild(badgeG);
-      }
-
-      if (isTurn && !player.isBot) {
-        g.style.cursor = 'pointer';
-        let lastTap = 0;
-        const handleCornerTap = (e) => {
-          const now = Date.now();
-          if (now - lastTap < 400) return;
-          lastTap = now;
-
-          e.preventDefault();
-          e.stopPropagation();
-          if (window.uiController) {
-            window.uiController.triggerDiceRoll();
-          }
-        };
-
-        g.addEventListener('touchstart', handleCornerTap, { passive: false });
-        g.addEventListener('click', handleCornerTap);
-      }
-
-      boardGroup.appendChild(g);
-    });
-  }
-
   /* ----------------------------------------------------
-     STEP-BY-STEP HOPPING ANIMATION ("Kon se goti chali ho")
+     STEP-BY-STEP VISIBLE HOPPING ANIMATION
+     User requested: "or chalne ki speed thoda slow karo jise dike chalte hua"
+     Speed set to 260ms per step so every hop is clearly visible!
   ---------------------------------------------------- */
   calculateWaypoints(player, prevPos, move) {
     const cfg = this.game.boardConfig;
@@ -905,46 +972,58 @@ class BoardRenderer {
       return;
     }
 
-    const hopDuration = 100; // ms per hop (fast, snappy, real ludo app speed)
+    // User requested: "or chalne ki speed thoda slow karo jise dike chalte hua"
+    const hopDuration = 260; // ms per step (slow, visible jump arc!)
     const pawnScale = this.game.boardType === 4 ? 1.25 : 1.05;
     const c = player.config;
     const colorKey = player.colorKey;
 
-    // Temporary hopping token group placed on top layer
+    // Temporary hopping token placed on SVG root
     const hopG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     hopG.setAttribute('class', 'token-group hopping-active');
     hopG.style.pointerEvents = 'none';
 
-    // Step counter badge (+roll) above hopping pawn
+    // Step counter badge (+roll) above hopping token
     const rollBadge = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    rollBadge.setAttribute('transform', 'translate(0, -42)');
+    rollBadge.setAttribute('transform', 'translate(0, -38)');
     rollBadge.innerHTML = `
       <rect x="-24" y="-11" width="48" height="22" rx="11" fill="#f59e0b" stroke="#ffffff" stroke-width="1.8" filter="url(#shadow)"/>
       <text text-anchor="middle" dy="0.35em" font-size="12" font-weight="900" fill="#0f172a">+${this.game.currentRoll}</text>
     `;
     hopG.appendChild(rollBadge);
 
-    // Inner 3D pawn element that animates the hop arc
+    // Inner 3D Star Goti Element (matches user's reference image!)
     const pawnInner = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     pawnInner.setAttribute('class', 'pawn-hop-inner');
     pawnInner.setAttribute('transform', `scale(${pawnScale})`);
 
     pawnInner.innerHTML = `
-      <ellipse cx="0" cy="14" rx="16" ry="6" fill="rgba(0,0,0,0.38)" filter="url(#shadow)"/>
-      <ellipse cx="0" cy="12" rx="14" ry="4.8" fill="${c.darkHex || '#000'}"/>
-      <path d="M -14 12 C -14 7, -9 5, -6 4 L 6 4 C 9 5, 14 7, 14 12 C 14 15, 9 16, 0 16 C -9 16, -14 15, -14 12 Z" fill="url(#pawn-base-${colorKey})"/>
-      <ellipse cx="0" cy="11.2" rx="13.2" ry="4" fill="${c.lightHex || '#fff'}" opacity="0.35"/>
-      <ellipse cx="0" cy="6" rx="8.5" ry="2.6" fill="${c.lightHex || '#fff'}" opacity="0.65"/>
-      <path d="M -6.5 4 C -7.5 -3, -4.5 -10, -3.5 -12 L 3.5 -12 C 4.5 -10, 7.5 -3, 6.5 4 Z" fill="url(#pawn-body-${colorKey})"/>
-      <path d="M -4 2 C -5 -2, -3 -8, -2 -11" stroke="#ffffff" stroke-width="1.3" stroke-linecap="round" opacity="0.75"/>
-      <ellipse cx="0" cy="-12" rx="5" ry="1.8" fill="url(#gold-ring)" stroke="#92400e" stroke-width="0.8"/>
-      <circle cx="0" cy="-20" r="8.8" fill="url(#pawn-head-${colorKey})" filter="url(#pawn-shadow)"/>
-      <ellipse cx="-2.8" cy="-22.8" rx="3.6" ry="2.2" fill="#ffffff" opacity="0.88" transform="rotate(-25 -2.8 -22.8)"/>
-      <circle cx="3.2" cy="-16.8" r="1.3" fill="#ffffff" opacity="0.45"/>
+      <!-- Contact Shadow -->
+      <ellipse cx="0" cy="5" rx="20" ry="14" fill="rgba(0, 0, 0, 0.4)" filter="url(#shadow)"/>
+
+      <!-- Outer 3D Rim -->
+      <circle cx="0" cy="1" r="19" fill="${c.darkHex || '#000'}" filter="url(#pawn-shadow)"/>
+
+      <!-- Colored Glossy Body -->
+      <circle cx="0" cy="0" r="18" fill="url(#token-body-${colorKey})"/>
+      <circle cx="0" cy="0" r="17.5" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.6"/>
+
+      <!-- Inner Recessed Ring -->
+      <circle cx="0" cy="-0.5" r="13" fill="${c.darkHex || '#000'}" opacity="0.6"/>
+      <circle cx="0" cy="-1.5" r="12" fill="url(#token-head-${colorKey})"/>
+      <circle cx="0" cy="-1.5" r="11.5" fill="none" stroke="#ffffff" stroke-width="0.8" opacity="0.8"/>
+
+      <!-- Specular Highlight Arc -->
+      <path d="M -11 -7 A 14 14 0 0 1 11 -7" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.8"/>
+
+      <!-- Central Embossed Star ⭐ -->
+      <polygon points="0,-7 2.2,-2.2 7,-2.2 3.2,0.8 4.6,5.5 0,2.5 -4.6,5.5 -3.2,0.8 -7,-2.2 -2.2,-2.2"
+               fill="#ffffff" stroke="${c.darkHex || '#000'}" stroke-width="0.8" filter="url(#shadow)"/>
+      <circle cx="0" cy="0" r="1.5" fill="#fef08a"/>
     `;
     hopG.appendChild(pawnInner);
 
-    // Hide original token in static board render while hopping
+    // Hide original token during hopping
     this.renderBoard();
     const origTokenEl = this.svg.querySelector(`[data-token-id="${token.id}"][data-player-id="${player.id}"]`);
     if (origTokenEl) origTokenEl.style.opacity = '0';
@@ -955,13 +1034,13 @@ class BoardRenderer {
     const startCoord = this.getTokenCoordinates(prevPos, player) || waypoints[0];
     hopG.setAttribute('transform', `translate(${startCoord.x}, ${startCoord.y})`);
 
-    // Hop sequentially through all waypoints!
+    // Hop sequentially through each waypoint with visible slow step animation!
     for (let i = 0; i < waypoints.length; i++) {
       const pt = waypoints[i];
       hopG.setAttribute('transform', `translate(${pt.x}, ${pt.y})`);
       if (window.soundEngine) window.soundEngine.playTokenStep();
 
-      // Hop arc animation on the inner group!
+      // Smooth Jump Arc
       pawnInner.classList.add('jump-arc');
       await new Promise((r) => setTimeout(r, hopDuration));
       pawnInner.classList.remove('jump-arc');
@@ -981,7 +1060,8 @@ class BoardRenderer {
   }
 
   /* ----------------------------------------------------
-     AUTHENTIC LUDO KING 3D PAWN RENDERING & MULTI-STACKING
+     3D STAR GOTI (TOKEN) RENDERING
+     Exact match to the User's Uploaded Reference Image!
   ---------------------------------------------------- */
   renderTokens() {
     let tokenLayer = this.svg.querySelector('#token-layer');
@@ -1012,7 +1092,7 @@ class BoardRenderer {
       });
     });
 
-    // Render grouped tokens with dynamic offset
+    // Render grouped tokens
     tileOccupancy.forEach((group) => {
       const count = group.length;
       group.forEach((item, idx) => {
@@ -1063,34 +1143,34 @@ class BoardRenderer {
     innerG.setAttribute('transform', `scale(${pawnScale})`);
 
     innerG.innerHTML = `
-      <!-- Pulsing Aura beneath pawn when movable (Ludo King Signature) -->
+      <!-- Pulsing Aura beneath goti when movable -->
       ${isMovable ? `
-        <ellipse class="token-aura" cx="0" cy="14" rx="22" ry="9" fill="url(#gold-aura)"/>
-        <ellipse cx="0" cy="14" rx="16" ry="6.5" fill="none" stroke="#fbbf24" stroke-width="2" opacity="0.9"/>
+        <ellipse class="token-aura" cx="0" cy="4" rx="24" ry="16" fill="url(#gold-aura)"/>
+        <ellipse cx="0" cy="4" rx="19" ry="12" fill="none" stroke="#fbbf24" stroke-width="2.2" opacity="0.95"/>
       ` : ''}
 
-      <!-- Ground Contact Shadow -->
-      <ellipse cx="0" cy="14" rx="15" ry="5.5" fill="rgba(0, 0, 0, 0.35)" filter="url(#shadow)"/>
+      <!-- Contact Shadow -->
+      <ellipse cx="0" cy="4" rx="19" ry="13" fill="rgba(0, 0, 0, 0.35)" filter="url(#shadow)"/>
 
-      <!-- Base Pedestal (3D Stepped Disc) -->
-      <ellipse cx="0" cy="12" rx="14" ry="4.8" fill="${c.darkHex || '#000'}"/>
-      <path d="M -14 12 C -14 7, -9 5, -6 4 L 6 4 C 9 5, 14 7, 14 12 C 14 15, 9 16, 0 16 C -9 16, -14 15, -14 12 Z" fill="url(#pawn-base-${colorKey})"/>
-      <ellipse cx="0" cy="11.2" rx="13.2" ry="4" fill="${c.lightHex || '#fff'}" opacity="0.35"/>
-      <ellipse cx="0" cy="6" rx="8.5" ry="2.6" fill="${c.lightHex || '#fff'}" opacity="0.65"/>
+      <!-- Outer 3D Rim -->
+      <circle cx="0" cy="1" r="18.5" fill="${c.darkHex || '#000'}" filter="url(#pawn-shadow)"/>
 
-      <!-- Flared Bell / Conical Body -->
-      <path d="M -6.5 4 C -7.5 -3, -4.5 -10, -3.5 -12 L 3.5 -12 C 4.5 -10, 7.5 -3, 6.5 4 Z" fill="url(#pawn-body-${colorKey})"/>
-      <!-- Body 3D Specular Highlight Curve -->
-      <path d="M -4 2 C -5 -2, -3 -8, -2 -11" stroke="#ffffff" stroke-width="1.3" stroke-linecap="round" opacity="0.75"/>
+      <!-- Colored Glossy Body -->
+      <circle cx="0" cy="0" r="17.5" fill="url(#token-body-${colorKey})"/>
+      <circle cx="0" cy="0" r="17" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.6"/>
 
-      <!-- Golden Neck Ring Collar (Ludo King Signature) -->
-      <ellipse cx="0" cy="-12" rx="5" ry="1.8" fill="url(#gold-ring)" stroke="#92400e" stroke-width="0.8"/>
+      <!-- Inner Recessed Step -->
+      <circle cx="0" cy="-0.5" r="12.5" fill="${c.darkHex || '#000'}" opacity="0.6"/>
+      <circle cx="0" cy="-1.5" r="11.5" fill="url(#token-head-${colorKey})"/>
+      <circle cx="0" cy="-1.5" r="11" fill="none" stroke="#ffffff" stroke-width="0.8" opacity="0.8"/>
 
-      <!-- Head Sphere (Spherical 3D Ball) -->
-      <circle cx="0" cy="-20" r="8.8" fill="url(#pawn-head-${colorKey})" filter="url(#pawn-shadow)"/>
-      <!-- Head 3D Gloss / Light Reflection (Ludo King Look) -->
-      <ellipse cx="-2.8" cy="-22.8" rx="3.6" ry="2.2" fill="#ffffff" opacity="0.88" transform="rotate(-25 -2.8 -22.8)"/>
-      <circle cx="3.2" cy="-16.8" r="1.3" fill="#ffffff" opacity="0.45"/>
+      <!-- Specular Highlight Arc -->
+      <path d="M -10 -7 A 13 13 0 0 1 10 -7" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" fill="none" opacity="0.8"/>
+
+      <!-- Central Embossed Star ⭐ (Exact match to reference image!) -->
+      <polygon points="0,-7 2.2,-2.2 7,-2.2 3.2,0.8 4.6,5.5 0,2.5 -4.6,5.5 -3.2,0.8 -7,-2.2 -2.2,-2.2"
+               fill="#ffffff" stroke="${c.darkHex || '#000'}" stroke-width="0.8" filter="url(#shadow)"/>
+      <circle cx="0" cy="0" r="1.5" fill="#fef08a"/>
     `;
 
     g.appendChild(innerG);
@@ -1112,7 +1192,7 @@ class BoardRenderer {
       g.addEventListener('touchstart', handleTap, { passive: false });
       g.addEventListener('click', handleTap);
     } else if (token.state === 'BASE' && player.id === currentPlayer?.id) {
-      // Feedback when user tries to tap base pawn without rolling 6
+      // Feedback when user tries to tap base token without rolling 6
       g.style.cursor = 'not-allowed';
       const handleBlockedTap = (e) => {
         e.preventDefault();
@@ -1189,7 +1269,7 @@ class BoardRenderer {
   ---------------------------------------------------- */
   spawnConfetti(count = 70) {
     if (!this.canvas) return;
-    const colors = ['#e52521', '#00a651', '#fdb813', '#0072bc', '#9333ea', '#ea580c', '#ffffff'];
+    const colors = ['#0072bc', '#e52521', '#00a651', '#fdb813', '#9333ea', '#ffffff'];
     for (let i = 0; i < count; i++) {
       this.particles.push({
         x: this.canvas.width / 2,
@@ -1214,7 +1294,7 @@ class BoardRenderer {
           const p = this.particles[i];
           p.x += p.vx;
           p.y += p.vy;
-          p.vy += 0.45; // Gravity
+          p.vy += 0.45;
           p.rotation += p.vr;
           p.life -= p.decay;
 

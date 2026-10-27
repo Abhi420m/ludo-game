@@ -219,6 +219,30 @@ class UIController {
       this.startNewGameFromSetup();
     });
 
+    // Quick New Game button in header (User requested)
+    const btnQuickNew = document.getElementById('btn-quick-new');
+    btnQuickNew?.addEventListener('click', () => {
+      this.dom.setupDialog.showModal();
+    });
+
+    // Team Mode button selector (2v2 Team Play)
+    const teamModeBtns = document.querySelectorAll('.team-mode-btn');
+    teamModeBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        teamModeBtns.forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        // If team mode is selected, set player count to 4 (2v2)
+        if (btn.dataset.team === 'team') {
+          this.dom.playerCountBtns?.forEach((b) => {
+            b.classList.remove('active');
+            if (b.dataset.count === '4') b.classList.add('active');
+          });
+          this.generatePlayerConfigRows(4);
+        }
+      });
+    });
+
     // Play again button
     this.dom.btnPlayAgain?.addEventListener('click', () => {
       this.dom.winDialog.close();
@@ -268,8 +292,8 @@ class UIController {
     this.dom.playerListConfig.innerHTML = '';
 
     const colors = count > 4 ?
-      ['red', 'green', 'yellow', 'blue', 'purple', 'orange'] :
-      ['red', 'green', 'yellow', 'blue'];
+      ['blue', 'red', 'green', 'yellow', 'purple', 'orange'] :
+      ['blue', 'red', 'green', 'yellow'];
 
     for (let i = 0; i < count; i++) {
       const cKey = colors[i];
@@ -323,6 +347,9 @@ class UIController {
 
     const killRequired = this.dom.toggleKillRule ? this.dom.toggleKillRule.checked : true;
 
+    const activeTeamBtn = document.querySelector('.team-mode-btn.active');
+    const teamMode = activeTeamBtn?.dataset.team === 'team' && playerCount === 4;
+
     const players = [];
     const rows = document.querySelectorAll('.player-setup-row');
     rows.forEach((row, idx) => {
@@ -338,6 +365,7 @@ class UIController {
       boardType,
       tokensPerPlayer,
       killRequired,
+      teamMode,
       players
     });
   }
@@ -489,16 +517,8 @@ class UIController {
         this.renderer.renderBoard();
       }
 
-      // Fast auto-move when only 1 choice or all base exits
-      const allExitBase = this.game.validMoves.length > 0 && this.game.validMoves.every(m => m.action === 'EXIT_BASE');
-      if ((allExitBase || this.game.validMoves.length === 1) && !this.game.getCurrentPlayer().isBot) {
-        setTimeout(() => {
-          if (this.game.turnState === 'WAITING_FOR_MOVE' && this.game.validMoves.length > 0) {
-            window.soundEngine.playTokenStep();
-            this.game.moveToken(this.game.validMoves[0].tokenId);
-          }
-        }, 240);
-      }
+      // User requested: "player apne hisb se hi gooti chale"
+      // NO auto-move! Player decides and manually taps which token to move!
     }, 350);
   }
 

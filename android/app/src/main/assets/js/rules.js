@@ -1,8 +1,12 @@
 /**
  * Ludo Game Rules Engine
- * Supports 2, 3, 4, 5, 6 players.
- * Implements special traditional Indian Ludo rule:
- * "Bina dusre ki goti kaate ghar ke andar jana mana hai" (Kill Required to Enter Home).
+ * Implements:
+ * - "Bina tod ke andar na jana" (Kill / Tod required to enter Home):
+ *   If no opponent killed yet, the token stops at the entrance and cannot turn in.
+ * - Rolling 6: opens token from base + bonus roll. Max 2 sixes in a row (3 consecutive sixes cancels turn).
+ * - Safe Zones: Stars ⭐ and Start tiles are safe. Tokens cannot be captured there. Multiple tokens can share.
+ * - Exact roll required to reach center Home.
+ * - Team Mode (Team A: Blue + Green vs Team B: Red + Yellow). Teammates cannot cut each other.
  */
 
 class LudoGame {
@@ -11,6 +15,7 @@ class LudoGame {
     this.boardType = options.boardType || (this.playerCount > 4 ? 6 : 4);
     this.tokensPerPlayer = options.tokensPerPlayer || 4;
     this.killRequired = options.killRequired !== false; // Default: TRUE as requested!
+    this.teamMode = options.teamMode === true && this.playerCount === 4; // 2v2 Team Play
     this.playerConfigs = options.players || [];
 
     this.boardConfig = this.boardType === 6 ? window.BOARD_6_CONFIG : window.BOARD_4_CONFIG;
@@ -24,6 +29,7 @@ class LudoGame {
     this.turnState = 'WAITING_FOR_ROLL'; // 'WAITING_FOR_ROLL', 'WAITING_FOR_MOVE', 'ANIMATING', 'GAME_OVER'
     this.validMoves = [];
     this.winnerRankings = []; // 1st, 2nd, 3rd...
+    this.winningTeam = null;
     this.gameOver = false;
     this.logs = [];
 
@@ -46,37 +52,42 @@ class LudoGame {
 
     if (this.boardType === 4) {
       if (this.playerCount === 2) {
-        // 2 players: Red & Yellow (Opposite sides for fair balance)
-        colorList = ['red', 'yellow'];
+        colorList = ['blue', 'green']; // Opposite corners
       } else if (this.playerCount === 3) {
-        colorList = ['red', 'green', 'yellow'];
+        colorList = ['blue', 'red', 'green'];
       } else {
-        colorList = ['red', 'green', 'yellow', 'blue'];
+        // Matches User Reference Image: Player 1 (Blue), Player 2 (Red), Player 3 (Green), Player 4 (Yellow)
+        colorList = ['blue', 'red', 'green', 'yellow'];
       }
     } else {
-      // 6-player board
-      const all6 = ['red', 'green', 'yellow', 'blue', 'purple', 'orange'];
-      if (this.playerCount === 2) {
-        colorList = ['red', 'blue']; // Opposite sectors
-      } else if (this.playerCount === 3) {
-        colorList = ['red', 'yellow', 'purple']; // 120 deg triangle
-      } else {
-        colorList = all6.slice(0, this.playerCount);
-      }
+      const all6 = ['blue', 'red', 'green', 'yellow', 'purple', 'orange'];
+      colorList = all6.slice(0, this.playerCount);
     }
 
     colorList.forEach((colorKey, idx) => {
       const customConfig = this.playerConfigs[idx] || {};
       const colorMeta = this.boardConfig.colors[colorKey];
 
+      // Team Assignment in 4-Player Team Mode
+      // Blue (P1) + Green (P3) = Team A
+      // Red (P2) + Yellow (P4) = Team B
+      let teamId = null;
+      let teamName = null;
+      if (this.teamMode) {
+        teamId = (idx === 0 || idx === 2) ? 'A' : 'B';
+        teamName = teamId === 'A' ? 'Team A (Blue + Green)' : 'Team B (Red + Yellow)';
+      }
+
       const player = {
         id: idx,
         colorKey,
         name: customConfig.name || `Player ${idx + 1}`,
+        teamId,
+        teamName,
         isBot: customConfig.isBot || false,
-        botDifficulty: customConfig.botDifficulty || 'medium', // 'easy', 'medium', 'hard'
+        botDifficulty: customConfig.botDifficulty || 'medium',
         config: colorMeta,
-        hasKilledOpponent: false, // Core rule flag
+        hasKilledOpponent: false, // Core traditional "Tod" rule
         killsCount: 0,
         tokensFinished: 0,
         rank: null,
@@ -90,9 +101,9 @@ class LudoGame {
           playerId: idx,
           colorKey,
           state: 'BASE', // 'BASE', 'TRACK', 'HOME_PATH', 'FINISHED'
-          trackIndex: null, // outer tile index (0..51 or 0..71)
-          homeStep: null, // 0..4, 5 is center home
-          stepsTraveled: 0, // steps walked on outer track
+          trackIndex: null,
+          homeStep: null,
+          stepsTraveled: 0,
           baseSlotIndex: t
         });
       }
@@ -109,12 +120,23 @@ class LudoGame {
   }
 
   // Roll dice
+  // Rule: Rolling 6 grants +1 bonus turn, max 2 consecutive sixes (3rd six cancelled / prohibited)
   rollDice(forcedValue = null) {
     if (this.turnState !== 'WAITING_FOR_ROLL' || this.gameOver) {
       return null;
     }
 
-    const value = forcedValue || Math.floor(Math.random() * 6) + 1;
+    let value = forcedValue;
+    if (!value) {
+      if (this.consecutiveSixes >= 2) {
+        // User requested: "6 aane pe 2 chance milte 2 bar or 6 3 bar na aana chye"
+        // After 2 sixes, generate 1 to 5 only:
+        value = Math.floor(Math.random() * 5) + 1;
+      } else {
+        value = Math.floor(Math.random() * 6) + 1;
+      }
+    }
+
     this.currentRoll = value;
 
     if (value === 6) {
@@ -123,11 +145,11 @@ class LudoGame {
       this.consecutiveSixes = 0;
     }
 
-    // Check consecutive 3 sixes penalty
-    if (this.consecutiveSixes === 3) {
+    // Three sixes cancellation rule
+    if (this.consecutiveSixes >= 3) {
       this.consecutiveSixes = 0;
       this.turnState = 'WAITING_FOR_ROLL';
-      this.onDiceRolled(value, this.getCurrentPlayer(), true); // 3rd six penalty
+      this.onDiceRolled(value, this.getCurrentPlayer(), true);
       this.passTurn();
       return { value, penalty: true };
     }
@@ -149,14 +171,26 @@ class LudoGame {
     return { value, validMoves: this.validMoves };
   }
 
-  // Calculate all valid moves for given player and roll
+  // Check if player or team has killed an opponent to enter home
+  hasKillPermission(player) {
+    if (!this.killRequired) return true;
+    if (this.teamMode) {
+      // Team mode: if ANY partner in the team has a kill, home is open
+      return this.players.some((p) => p.teamId === player.teamId && p.hasKilledOpponent);
+    }
+    return player.hasKilledOpponent;
+  }
+
+  // Calculate all valid moves
   calculateValidMoves(player, roll) {
     const valid = [];
-    const N = this.totalTrackTiles;
+    const N = this.totalTrackTiles; // 52
+    const canEnterHome = this.hasKillPermission(player);
 
     player.tokens.forEach((token) => {
       if (token.state === 'FINISHED') return;
 
+      // 1. BASE: Only opens on rolling 6!
       if (token.state === 'BASE') {
         if (roll === 6) {
           valid.push({
@@ -172,41 +206,74 @@ class LudoGame {
         return;
       }
 
+      // 2. TRACK: Moving on outer circuit
       if (token.state === 'TRACK') {
-        const startIndex = player.config.startIndex;
         const turnIndex = player.config.turnIndex;
+        const circuitLength = N - 1; // 51 steps from start to turn entrance
+        const stepsLeftToEntrance = circuitLength - token.stepsTraveled;
 
-        // Steps needed to reach turnIndex
-        // Normal track distance from token.trackIndex to turnIndex:
-        let distToTurn = (turnIndex - token.trackIndex + N) % N;
-        if (distToTurn === 0 && token.stepsTraveled > 0) {
-          distToTurn = 0; // Exactly on turn tile
-        }
-
-        const canEnterHome = player.hasKilledOpponent || !this.killRequired;
-
-        // Has the token traveled around the board to reach home entrance?
-        // A full circuit is N - 1 steps.
-        const wouldPassTurnTile = token.stepsTraveled + roll >= (N - 1);
-
-        if (canEnterHome && wouldPassTurnTile) {
-          // Calculate steps into home path
-          const stepsIntoHome = (token.stepsTraveled + roll) - (N - 1);
-
-          if (stepsIntoHome === 0) {
-            // Exactly on turn tile
+        // If player DOES NOT have kill permission ("बिना तोड़ के अंदर ना जाना"):
+        if (!canEnterHome) {
+          if (token.stepsTraveled >= circuitLength) {
+            // Already at the entrance! Cannot enter home!
+            // Must stay at entrance waiting for kill, or take another round
+            const nextTrackIndex = (token.trackIndex + roll) % N;
+            valid.push({
+              tokenId: token.id,
+              action: 'BYPASS_LOCKED_GATE',
+              destination: {
+                state: 'TRACK',
+                trackIndex: nextTrackIndex,
+                stepsTraveled: token.stepsTraveled + roll
+              },
+              stoppedAtEntrance: false
+            });
+          } else if (token.stepsTraveled + roll >= circuitLength) {
+            // Reaches the entrance: Stops right at the entrance gate!
+            // "आपकी गोटी घर के मुहाने (Entrance) पर आकर रुक जाएगी। वह तब तक अंदर नहीं मुड़ेगी जब तक आप किसी अन्य गोटी से तोड़ न कर लें।"
             valid.push({
               tokenId: token.id,
               action: 'MOVE_TRACK',
               destination: {
                 state: 'TRACK',
                 trackIndex: turnIndex,
+                stepsTraveled: circuitLength
+              },
+              stoppedAtEntrance: true
+            });
+          } else {
+            // Normal track move before entrance
+            const nextTrackIndex = (token.trackIndex + roll) % N;
+            valid.push({
+              tokenId: token.id,
+              action: 'MOVE_TRACK',
+              destination: {
+                state: 'TRACK',
+                trackIndex: nextTrackIndex,
                 stepsTraveled: token.stepsTraveled + roll
               }
             });
+          }
+          return;
+        }
+
+        // Player HAS kill permission: can enter colored home lane!
+        if (token.stepsTraveled + roll >= circuitLength) {
+          const stepsIntoHome = (token.stepsTraveled + roll) - circuitLength;
+
+          if (stepsIntoHome === 0) {
+            // Land exactly on entrance tile
+            valid.push({
+              tokenId: token.id,
+              action: 'MOVE_TRACK',
+              destination: {
+                state: 'TRACK',
+                trackIndex: turnIndex,
+                stepsTraveled: circuitLength
+              }
+            });
           } else if (stepsIntoHome <= this.homePathLength) {
-            // Inside colored Home Path (stepsIntoHome 1..5)
-            // step 1 -> index 0, step 5 -> index 4
+            // Inside colored Home Path (steps 1..5)
             valid.push({
               tokenId: token.id,
               action: 'ENTER_HOME_PATH',
@@ -217,7 +284,7 @@ class LudoGame {
               }
             });
           } else if (stepsIntoHome === this.homePathLength + 1) {
-            // Reaches final Center Home!
+            // Exact roll to enter Center Home!
             valid.push({
               tokenId: token.id,
               action: 'ENTER_CENTER_HOME',
@@ -228,26 +295,24 @@ class LudoGame {
               }
             });
           }
-          // If stepsIntoHome > homePathLength + 1: Overshot! Invalid move.
+          // If stepsIntoHome > homePathLength + 1: Overshoot! Invalid move.
         } else {
-          // Token stays on outer track:
-          // Either it hasn't finished the circuit yet, OR Home Gate is locked!
+          // Normal track move
           const nextTrackIndex = (token.trackIndex + roll) % N;
-          const wouldLockBypass = !canEnterHome && wouldPassTurnTile;
-
           valid.push({
             tokenId: token.id,
-            action: wouldLockBypass ? 'BYPASS_LOCKED_GATE' : 'MOVE_TRACK',
+            action: 'MOVE_TRACK',
             destination: {
               state: 'TRACK',
               trackIndex: nextTrackIndex,
               stepsTraveled: token.stepsTraveled + roll
-            },
-            lockedGateBypass: wouldLockBypass
+            }
           });
         }
+        return;
       }
 
+      // 3. HOME PATH: Moving inside colored stretch towards Center Home
       if (token.state === 'HOME_PATH') {
         const nextStep = token.homeStep + roll;
         if (nextStep < this.homePathLength) {
@@ -261,7 +326,7 @@ class LudoGame {
             }
           });
         } else if (nextStep === this.homePathLength) {
-          // Exact roll to finish!
+          // Exact roll to reach Center Home!
           valid.push({
             tokenId: token.id,
             action: 'ENTER_CENTER_HOME',
@@ -272,7 +337,7 @@ class LudoGame {
             }
           });
         }
-        // If nextStep > homePathLength: Overshoot, cannot move.
+        // If nextStep > homePathLength: Overshoot! Cannot move without exact roll.
       }
     });
 
@@ -308,20 +373,32 @@ class LudoGame {
         for (const otherPlayer of this.players) {
           if (otherPlayer.id === player.id) continue;
 
+          // In Team Mode: Teammates NEVER cut each other!
+          if (this.teamMode && otherPlayer.teamId === player.teamId) {
+            continue;
+          }
+
           for (const opToken of otherPlayer.tokens) {
             if (opToken.state === 'TRACK' && opToken.trackIndex === token.trackIndex) {
-              // GOTI CUT!
+              // GOTI CUT (TOD)!
               victimToken = opToken;
               opToken.state = 'BASE';
               opToken.trackIndex = null;
               opToken.stepsTraveled = 0;
               opToken.homeStep = null;
 
-              // Register Kill
+              // Register Kill / Tod
               player.killsCount++;
               const firstKill = !player.hasKilledOpponent;
               player.hasKilledOpponent = true;
               getsBonusRoll = true;
+
+              // In Team Mode: Unlock gate for the whole team!
+              if (this.teamMode) {
+                this.players
+                  .filter((p) => p.teamId === player.teamId)
+                  .forEach((p) => (p.hasKilledOpponent = true));
+              }
 
               this.onTokenKilled(player, opToken, otherPlayer);
 
@@ -345,62 +422,82 @@ class LudoGame {
       if (player.tokensFinished === this.tokensPerPlayer) {
         player.rank = this.winnerRankings.length + 1;
         this.winnerRankings.push(player);
-
-        // Check if game is over (all or all-but-one finished)
-        if (this.winnerRankings.length >= this.players.length - 1) {
-          this.gameOver = true;
-          // Assign last player
-          const remaining = this.players.find((p) => !p.rank);
-          if (remaining) {
-            remaining.rank = this.players.length;
-            this.winnerRankings.push(remaining);
-          }
-          this.onGameOver(this.winnerRankings);
-        }
       }
     }
 
-    // Await step-by-step hopping animation so players clearly see which goti moved!
+    // Check Game Over conditions
+    if (this.teamMode) {
+      const teamATokens = this.players.filter((p) => p.teamId === 'A').reduce((sum, p) => sum + p.tokensFinished, 0);
+      const teamBTokens = this.players.filter((p) => p.teamId === 'B').reduce((sum, p) => sum + p.tokensFinished, 0);
+      const targetTeamTokens = this.tokensPerPlayer * 2; // 8 tokens
+
+      if (teamATokens >= targetTeamTokens) {
+        this.gameOver = true;
+        this.winningTeam = 'A';
+        this.turnState = 'GAME_OVER';
+        await this.onTokenMoved(player, token, prevPos, move, victimToken);
+        this.onGameOver({ teamMode: true, winningTeam: 'A', teamName: 'Team A (Blue + Green)' });
+        return true;
+      } else if (teamBTokens >= targetTeamTokens) {
+        this.gameOver = true;
+        this.winningTeam = 'B';
+        this.turnState = 'GAME_OVER';
+        await this.onTokenMoved(player, token, prevPos, move, victimToken);
+        this.onGameOver({ teamMode: true, winningTeam: 'B', teamName: 'Team B (Red + Yellow)' });
+        return true;
+      }
+    } else {
+      if (this.winnerRankings.length >= this.players.length - 1) {
+        this.gameOver = true;
+        this.turnState = 'GAME_OVER';
+        await this.onTokenMoved(player, token, prevPos, move, victimToken);
+        this.onGameOver({ teamMode: false, rankings: this.winnerRankings });
+        return true;
+      }
+    }
+
+    // Broadcast move event with animation
     await this.onTokenMoved(player, token, prevPos, move, victimToken);
 
-    if (this.gameOver) {
-      this.onStateChange();
-      return true;
+    // Turn transition: Bonus roll or Pass turn
+    this.turnState = 'WAITING_FOR_ROLL';
+
+    if (getsBonusRoll && !this.gameOver) {
+      if (player.tokensFinished < this.tokensPerPlayer) {
+        const reason = this.currentRoll === 6 ? 'SIX' : (victimToken ? 'CAPTURE' : 'HOME');
+        this.onBonusRoll(player, reason);
+        this.onStateChange();
+        return true;
+      }
     }
 
-    // Turn resolution after animation finishes
-    if (getsBonusRoll) {
-      this.turnState = 'WAITING_FOR_ROLL';
-      this.onBonusRoll(player, this.currentRoll === 6 ? 'SIX' : victimToken ? 'KILL' : 'HOME');
-      this.onStateChange();
-    } else {
-      this.turnState = 'WAITING_FOR_ROLL';
-      this.consecutiveSixes = 0;
-      this.passTurn();
-    }
-
+    this.passTurn();
     return true;
   }
 
-  // Pass turn to next active player
+  // Advance turn to next active player
   passTurn() {
     if (this.gameOver) return;
 
-    let nextIdx = (this.currentPlayerIndex + 1) % this.players.length;
-    let attempts = 0;
-
-    // Skip already ranked/finished players
-    while (this.players[nextIdx].rank !== null && attempts < this.players.length) {
-      nextIdx = (nextIdx + 1) % this.players.length;
-      attempts++;
-    }
-
-    this.currentPlayerIndex = nextIdx;
+    this.consecutiveSixes = 0;
     this.currentRoll = 0;
     this.validMoves = [];
     this.turnState = 'WAITING_FOR_ROLL';
+
+    let nextIdx = (this.currentPlayerIndex + 1) % this.players.length;
+    let loopGuard = 0;
+
+    // Skip players who have finished all their tokens
+    while (this.players[nextIdx].tokensFinished === this.tokensPerPlayer && loopGuard < this.players.length) {
+      nextIdx = (nextIdx + 1) % this.players.length;
+      loopGuard++;
+    }
+
+    this.currentPlayerIndex = nextIdx;
     this.onStateChange();
   }
 }
 
-window.LudoGame = LudoGame;
+if (typeof window !== 'undefined') {
+  window.LudoGame = LudoGame;
+}

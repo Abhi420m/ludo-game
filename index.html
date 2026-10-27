@@ -26,11 +26,12 @@
         <span class="rule-badge" id="rule-banner">नियम: बिना गोटी काटे अंदर जाना मना है 🔒</span>
       </div>
       <div class="header-actions">
+        <button id="btn-quick-new" class="btn-new-game-header" title="New Game">🔄 नया खेल</button>
         <button id="btn-sound" class="icon-btn" title="Sound Toggle">🔊</button>
         <button id="btn-lang" class="icon-btn" title="Language Toggle">EN</button>
         <button id="btn-fullscreen" class="icon-btn" title="Fullscreen">⛶</button>
         <button id="btn-rules" class="icon-btn" title="Rules">❓</button>
-        <button id="btn-menu" class="icon-btn" title="New Game / Settings">⚙️</button>
+        <button id="btn-menu" class="icon-btn" title="Settings">⚙️</button>
       </div>
     </header>
 
@@ -51,7 +52,7 @@
     <!-- Game Viewport -->
     <main class="game-viewport">
       <div class="board-wrapper">
-        <svg id="ludo-board" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid meet"></svg>
+        <svg id="ludo-board" viewBox="0 -130 1000 1260" preserveAspectRatio="xMidYMid meet"></svg>
         <canvas id="confetti-canvas"></canvas>
       </div>
     </main>
@@ -96,6 +97,15 @@
             <button type="button" class="selector-btn player-count-btn active" data-count="4">4 खिलाड़ी</button>
             <button type="button" class="selector-btn player-count-btn" data-count="5">5 खिलाड़ी</button>
             <button type="button" class="selector-btn player-count-btn" data-count="6">6 खिलाड़ी</button>
+          </div>
+        </div>
+
+        <!-- Game Mode Selection (Solo vs Team Mode) -->
+        <div class="setting-group" id="group-team-mode">
+          <label class="setting-label">खेल मोड (Game Mode):</label>
+          <div class="btn-group">
+            <button type="button" class="selector-btn team-mode-btn active" data-team="solo">👤 सोलो (सब अलग-अलग)</button>
+            <button type="button" class="selector-btn team-mode-btn" data-team="team">👥 टीम 2v2 (🔴+🟡 vs 🟢+🔵)</button>
           </div>
         </div>
 
@@ -171,13 +181,13 @@
   </div>
 
   <!-- Scripts -->
-  <script src="js/audio.js"></script>
-  <script src="js/board4.js"></script>
-  <script src="js/board6.js"></script>
-  <script src="js/rules.js"></script>
-  <script src="js/ai.js"></script>
-  <script src="js/render.js"></script>
-  <script src="js/ui.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/audio.js?v=3"></script>
+  <script src="js/board4.js?v=3"></script>
+  <script src="js/board6.js?v=3"></script>
+  <script src="js/rules.js?v=3"></script>
+  <script src="js/ai.js?v=3"></script>
+  <script src="js/render.js?v=3"></script>
+  <script src="js/ui.js?v=3"></script>
+  <script src="js/app.js?v=3"></script>
 </body>
 </html>
