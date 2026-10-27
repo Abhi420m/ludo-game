@@ -9,6 +9,9 @@ on:
       - 'v*'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build Android APK
@@ -45,20 +48,23 @@ jobs:
           }
           echo "### ✅ Gradle Build Succeeded!" >> $GITHUB_STEP_SUMMARY
 
-      - name: Locate APK
+      - name: Prepare APK Release Binary
         run: |
-          find android/app/build/outputs/ -type f -name "*.apk" -ls || true
+          cp android/app/build/outputs/apk/debug/app-debug.apk Super-Ludo-Pro.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Super-Ludo-Pro-APK
-          path: android/app/build/outputs/apk/debug/*.apk
+          path: Super-Ludo-Pro.apk
 
       - name: Create GitHub Release with APK
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: android/app/build/outputs/apk/debug/*.apk
+          files: Super-Ludo-Pro.apk
+          name: Super Ludo Pro ${{ github.ref_name }}
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
