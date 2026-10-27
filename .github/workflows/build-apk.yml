@@ -34,19 +34,9 @@ jobs:
       - name: Build Debug APK
         run: |
           cd android
+          echo "sdk.dir=/usr/local/lib/android/sdk" > local.properties
           gradle wrapper --gradle-version 8.5
-          ./gradlew :app:assembleDebug --stacktrace --info 2>&1 | tee ../gradle_build.log
-
-      - name: Push Build Log to branch
-        if: always()
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -B build-log
-          cp gradle_build.log build.txt 2>/dev/null || echo "No log generated" > build.txt
-          git add build.txt
-          git commit -m "Auto: build log" || true
-          git push -f origin build-log || true
+          ./gradlew :app:assembleDebug --stacktrace --no-daemon
 
       - name: Prepare APK Release Binary
         run: |
