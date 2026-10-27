@@ -31,24 +31,22 @@ jobs:
         with:
           gradle-version: '8.5'
 
-      - name: Install Android SDK Platform & Build-Tools
-        run: |
-          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses 2>/dev/null || true
-          /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "build-tools;34.0.0" 2>/dev/null || true
-
       - name: Build Debug APK
         run: |
-          set -o pipefail
           cd android
-          echo "sdk.dir=/usr/local/lib/android/sdk" > local.properties
-          gradle :app:assembleDebug --stacktrace --no-daemon 2>&1 | tee ../gradle_build.log || {
-            echo "### ❌ Gradle Build Failed" >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 120 ../gradle_build.log >> $GITHUB_STEP_SUMMARY
-            echo '```' >> $GITHUB_STEP_SUMMARY
-            exit 1
-          }
-          echo "### ✅ Gradle Build Succeeded!" >> $GITHUB_STEP_SUMMARY
+          gradle wrapper --gradle-version 8.5
+          ./gradlew :app:assembleDebug --stacktrace --info 2>&1 | tee ../gradle_build.log
+
+      - name: Push Build Log to branch
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B build-log
+          cp gradle_build.log build.txt 2>/dev/null || echo "No log generated" > build.txt
+          git add build.txt
+          git commit -m "Auto: build log" || true
+          git push -f origin build-log || true
 
       - name: Prepare APK Release Binary
         run: |
