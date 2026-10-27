@@ -31,18 +31,20 @@ jobs:
         with:
           gradle-version: '8.5'
 
-      - name: Accept Android SDK Licenses
+      - name: Install Android SDK Platform & Build-Tools
         run: |
           yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses 2>/dev/null || true
+          /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "build-tools;34.0.0" 2>/dev/null || true
 
       - name: Build Debug APK
         run: |
+          set -o pipefail
           cd android
           echo "sdk.dir=/usr/local/lib/android/sdk" > local.properties
-          gradle :app:assembleDebug --stacktrace --no-daemon 2>&1 | tee build_output.log || {
+          gradle :app:assembleDebug --stacktrace --no-daemon 2>&1 | tee ../gradle_build.log || {
             echo "### ❌ Gradle Build Failed" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
-            tail -n 80 build_output.log >> $GITHUB_STEP_SUMMARY
+            tail -n 120 ../gradle_build.log >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
             exit 1
           }
@@ -50,21 +52,23 @@ jobs:
 
       - name: Prepare APK Release Binary
         run: |
-          APK_FILE=$(find android/app/build/outputs/apk/ -name "*.apk" | head -n 1)
-          echo "Found APK: $APK_FILE"
-          cp "$APK_FILE" Super-Ludo-Pro.apk
+          mkdir -p release-apk
+          APK_FOUND=$(find android/app/build/outputs/apk/ -name "*.apk" | head -n 1)
+          echo "Found APK at: $APK_FOUND"
+          cp "$APK_FOUND" release-apk/Super-Ludo-Pro.apk
+          ls -la release-apk/
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Super-Ludo-Pro-APK
-          path: Super-Ludo-Pro.apk
+          path: release-apk/Super-Ludo-Pro.apk
 
       - name: Create GitHub Release with APK
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: Super-Ludo-Pro.apk
+          files: release-apk/Super-Ludo-Pro.apk
           name: Super Ludo Pro ${{ github.ref_name }}
           draft: false
           prerelease: false
