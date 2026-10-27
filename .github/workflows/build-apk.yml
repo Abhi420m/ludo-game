@@ -50,7 +50,9 @@ jobs:
 
       - name: Prepare APK Release Binary
         run: |
-          cp android/app/build/outputs/apk/debug/app-debug.apk Super-Ludo-Pro.apk
+          APK_FILE=$(find android/app/build/outputs/apk/ -name "*.apk" | head -n 1)
+          echo "Found APK: $APK_FILE"
+          cp "$APK_FILE" Super-Ludo-Pro.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
