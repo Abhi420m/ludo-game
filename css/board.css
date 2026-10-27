@@ -1,42 +1,88 @@
 /* ----------------------------------------------------
-   BOARD & TOKEN SVG SPECIFIC STYLES
+   BOARD & AUTHENTIC LUDO KING 3D PAWN STYLES
 ---------------------------------------------------- */
 
 .token-group {
-  transition: transform 0.22s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .token-group.movable {
   cursor: pointer;
 }
 
-.token-group.movable circle {
-  filter: drop-shadow(0 0 6px #f59e0b);
+.token-group.movable:active {
+  transform: scale(0.94);
 }
 
+/* 3D Pawn Container */
+.pawn-container {
+  transform-origin: center bottom;
+  transition: filter 0.2s ease;
+}
+
+.token-group.movable .pawn-container {
+  filter: drop-shadow(0 0 10px #f59e0b) drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
+}
+
+/* Idle Bobbing / Bouncing Animation for Movable Pawns (Ludo King Signature) */
+.pawn-idle-bounce {
+  animation: pawnBob 0.85s ease-in-out infinite;
+  transform-origin: center 14px;
+}
+
+@keyframes pawnBob {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* Pulsing aura ring under the pawn */
 .token-aura {
   animation: pulseAura 1.4s ease-in-out infinite;
-  transform-origin: center;
-}
-
-.home-gate-lock {
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
-  animation: floatLock 2.4s ease-in-out infinite;
+  transform-origin: center 14px;
 }
 
 @keyframes pulseAura {
-  0% {
-    r: 24;
-    opacity: 0.65;
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
   }
   50% {
-    r: 34;
-    opacity: 0.2;
+    opacity: 0.95;
+    transform: scale(1.15);
+  }
+}
+
+/* Hopping Arc Jump Animation during Step-by-Step Movement */
+.pawn-hop-inner.jump-arc {
+  animation: hopArcJump 0.1s cubic-bezier(0.25, 1, 0.5, 1);
+  transform-origin: center 14px;
+}
+
+@keyframes hopArcJump {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-22px) scale(1.22);
   }
   100% {
-    r: 24;
-    opacity: 0.65;
+    transform: translateY(0) scale(1);
   }
+}
+
+.hopping-active {
+  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 14px #f59e0b);
+  z-index: 1000;
+}
+
+/* Home Gate Lock Badge */
+.home-gate-lock {
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45));
+  animation: floatLock 2.4s ease-in-out infinite;
 }
 
 @keyframes floatLock {
@@ -44,7 +90,7 @@
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-3px);
+    transform: translateY(-4px);
   }
 }
 
@@ -57,7 +103,7 @@
 
 .corner-dice.active-turn {
   cursor: pointer;
-  filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.7));
+  filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.85));
 }
 
 .corner-dice.rolling {
@@ -86,10 +132,10 @@
 
 @keyframes floatTapBadge {
   0%, 100% {
-    transform: translateY(-36px);
+    transform: translateY(0);
   }
   50% {
-    transform: translateY(-41px);
+    transform: translateY(-5px);
   }
 }
 
