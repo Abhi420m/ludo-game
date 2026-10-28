@@ -113,9 +113,24 @@ const TRANSLATIONS = {
   }
 };
 
+function safeGetUiStorage(key, defaultVal = null) {
+  try {
+    const val = localStorage.getItem(key);
+    return val !== null ? val : defaultVal;
+  } catch (e) {
+    return defaultVal;
+  }
+}
+
+function safeSetUiStorage(key, val) {
+  try {
+    localStorage.setItem(key, val);
+  } catch (e) {}
+}
+
 class UIController {
   constructor() {
-    this.lang = localStorage.getItem('ludo_lang') || 'hi';
+    this.lang = safeGetUiStorage('ludo_lang', 'hi');
     this.game = null;
     this.renderer = null;
     this.wakeLock = null;
@@ -186,7 +201,7 @@ class UIController {
     // Language toggle
     this.dom.btnLang?.addEventListener('click', () => {
       this.lang = this.lang === 'hi' ? 'en' : 'hi';
-      localStorage.setItem('ludo_lang', this.lang);
+      safeSetUiStorage('ludo_lang', this.lang);
       this.applyLanguage();
       this.updateTurnHud();
     });

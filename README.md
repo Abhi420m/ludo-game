@@ -105,5 +105,5 @@ ludo game/
 
 ## 📲 Android APK डाउनलोड करें (Direct APK Download)
 
-- 📥 **नवीनतम APK (v1.0.9):** [Super-Ludo-Pro.apk (v1.0.9)](https://github.com/Abhi420m/ludo-game/releases/download/v1.0.9/Super-Ludo-Pro.apk)
+- 📥 **नवीनतम APK (v1.1.0 - 100% Offline & Mobile Optimized):** [Super-Ludo-Pro.apk (v1.1.0)](https://github.com/Abhi420m/ludo-game/releases/download/v1.1.0/Super-Ludo-Pro.apk)
 - 🌐 **लाइव खेलें (GitHub Pages):** [https://abhi420m.github.io/ludo-game/](https://abhi420m.github.io/ludo-game/)

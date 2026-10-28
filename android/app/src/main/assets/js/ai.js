@@ -124,18 +124,6 @@ class LudoAI {
         score -= 180; // Penalty for placing token in danger
       }
     }
-            if (dist >= 1 && dist <= 6) {
-              landingDanger = true;
-              break;
-            }
-          }
-        }
-        if (landingDanger) break;
-      }
-      if (landingDanger) {
-        score -= 180; // Penalty for placing token in danger
-      }
-    }
 
     // 8. PROGRESS FORWARD
     if (dest.stepsTraveled) {

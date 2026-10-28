@@ -1172,10 +1172,13 @@ class BoardRenderer {
     innerG.setAttribute('transform', `scale(${pawnScale})`);
 
     innerG.innerHTML = `
+      <!-- Generous Mobile Touch Hitbox (makes tapping effortlessly responsive on phones) -->
+      <circle cx="0" cy="0" r="32" fill="rgba(0,0,0,0.001)" pointer-events="all"/>
+
       <!-- Pulsing Aura beneath goti when movable -->
       ${isMovable ? `
-        <ellipse class="token-aura" cx="0" cy="4" rx="24" ry="16" fill="url(#gold-aura)"/>
-        <ellipse cx="0" cy="4" rx="19" ry="12" fill="none" stroke="#fbbf24" stroke-width="2.2" opacity="0.95"/>
+        <ellipse class="token-aura" cx="0" cy="4" rx="26" ry="18" fill="url(#gold-aura)"/>
+        <ellipse cx="0" cy="4" rx="21" ry="14" fill="none" stroke="#fbbf24" stroke-width="2.6" opacity="0.95"/>
       ` : ''}
 
       <!-- Contact Shadow -->
