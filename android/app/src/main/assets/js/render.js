@@ -528,21 +528,21 @@ class BoardRenderer {
       `;
       g.appendChild(textG);
 
-      // Die Tray
+      // Die Tray (Enlarged)
       const tray = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
       tray.setAttribute('x', k.trayX);
       tray.setAttribute('y', k.trayY);
-      tray.setAttribute('width', '90');
-      tray.setAttribute('height', '76');
-      tray.setAttribute('rx', '12');
+      tray.setAttribute('width', '104');
+      tray.setAttribute('height', '84');
+      tray.setAttribute('rx', '14');
       tray.setAttribute('fill', isTurn ? '#ffffff' : '#1e293b');
       tray.setAttribute('stroke', isTurn ? c.hex : '#334155');
-      tray.setAttribute('stroke-width', '2');
+      tray.setAttribute('stroke-width', '2.5');
       g.appendChild(tray);
 
       // Die Tray Center
-      const diceCenterX = k.trayX + 45;
-      const diceCenterY = k.trayY + 38;
+      const diceCenterX = k.trayX + 52;
+      const diceCenterY = k.trayY + 42;
 
       if (isTurn) {
         const diceVal = this.game.currentRoll || 6;
@@ -554,60 +554,60 @@ class BoardRenderer {
         // Pulsing active aura
         const aura = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         aura.setAttribute('class', 'dice-aura');
-        aura.setAttribute('x', '-28');
-        aura.setAttribute('y', '-28');
-        aura.setAttribute('width', '56');
-        aura.setAttribute('height', '56');
-        aura.setAttribute('rx', '14');
+        aura.setAttribute('x', '-33');
+        aura.setAttribute('y', '-33');
+        aura.setAttribute('width', '66');
+        aura.setAttribute('height', '66');
+        aura.setAttribute('rx', '16');
         aura.setAttribute('fill', c.hex);
         aura.setAttribute('opacity', '0.45');
         diceG.appendChild(aura);
 
-        // 3D White Die Box
+        // 3D White Die Box (Enlarged to 56x56)
         const dieBox = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        dieBox.setAttribute('x', '-24');
-        dieBox.setAttribute('y', '-24');
-        dieBox.setAttribute('width', '48');
-        dieBox.setAttribute('height', '48');
-        dieBox.setAttribute('rx', '11');
+        dieBox.setAttribute('x', '-28');
+        dieBox.setAttribute('y', '-28');
+        dieBox.setAttribute('width', '56');
+        dieBox.setAttribute('height', '56');
+        dieBox.setAttribute('rx', '13');
         dieBox.setAttribute('fill', '#ffffff');
         dieBox.setAttribute('stroke', c.hex);
-        dieBox.setAttribute('stroke-width', '2.8');
+        dieBox.setAttribute('stroke-width', '3.2');
         dieBox.setAttribute('filter', 'url(#pawn-shadow)');
         diceG.appendChild(dieBox);
 
         // Dedicated Pips Group (animated dynamically during roll!)
         const pipsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         pipsGroup.setAttribute('class', 'dice-pips-group');
-        this.drawDicePips(pipsGroup, diceVal, 48);
+        this.drawDicePips(pipsGroup, diceVal, 56);
         diceG.appendChild(pipsGroup);
 
         // "TAP" floating badge
         if (this.game.turnState === 'WAITING_FOR_ROLL' || this.game.turnState === 'WAITING_FOR_MOVE') {
           const badgeG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-          const badgeOffsetY = k.side === 'bottom' ? -34 : 34;
+          const badgeOffsetY = k.side === 'bottom' ? -38 : 38;
           badgeG.setAttribute('transform', `translate(0, ${badgeOffsetY})`);
           badgeG.setAttribute('class', 'dice-tap-badge');
 
           const badgeRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-          badgeRect.setAttribute('x', '-30');
-          badgeRect.setAttribute('y', '-11');
-          badgeRect.setAttribute('width', '60');
-          badgeRect.setAttribute('height', '22');
-          badgeRect.setAttribute('rx', '11');
+          badgeRect.setAttribute('x', '-34');
+          badgeRect.setAttribute('y', '-12');
+          badgeRect.setAttribute('width', '68');
+          badgeRect.setAttribute('height', '24');
+          badgeRect.setAttribute('rx', '12');
           badgeRect.setAttribute('fill', '#f59e0b');
           badgeRect.setAttribute('stroke', '#ffffff');
-          badgeRect.setAttribute('stroke-width', '1.8');
+          badgeRect.setAttribute('stroke-width', '2');
           badgeG.appendChild(badgeRect);
 
           const badgeTxt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
           badgeTxt.setAttribute('text-anchor', 'middle');
           badgeTxt.setAttribute('dy', '0.35em');
-          badgeTxt.setAttribute('font-size', '11');
+          badgeTxt.setAttribute('font-size', '12');
           badgeTxt.setAttribute('font-weight', '900');
           badgeTxt.setAttribute('fill', '#0f172a');
           if (isRollingForPartner) {
-            badgeTxt.textContent = this.game.turnState === 'WAITING_FOR_ROLL' ? '🤝 ROLL' : '🤝 GOTI';
+            badgeTxt.textContent = this.game.turnState === 'WAITING_FOR_ROLL' ? '🤝 ROLL' : '👉 GOTI';
           } else {
             badgeTxt.textContent = this.game.turnState === 'WAITING_FOR_ROLL' ? '🎲 TAP' : '👉 GOTI';
           }
@@ -896,14 +896,15 @@ class BoardRenderer {
   /* ----------------------------------------------------
      DICE PIPS DRAWING & REALISTIC ROLL ANIMATION
   ---------------------------------------------------- */
-  drawDicePips(svgGroup, value, size = 48) {
-    const offset = size * 0.25;
-    const r = size * 0.095;
+  drawDicePips(svgGroup, value, size = 56) {
+    if (!svgGroup) return;
+    const offset = size * 0.26;
+    const r = size * 0.105;
 
     const pips = [];
     if (value === 1) {
       // Big bold Red Center Pip (Ludo Signature)
-      pips.push({ x: 0, y: 0, color: '#ef4444', r: r * 1.5 });
+      pips.push({ x: 0, y: 0, color: '#dc2626', r: r * 1.5 });
     } else if (value === 2) {
       pips.push({ x: -offset, y: -offset }, { x: offset, y: offset });
     } else if (value === 3) {
@@ -925,6 +926,7 @@ class BoardRenderer {
       circle.setAttribute('cy', p.y);
       circle.setAttribute('r', p.r || r);
       circle.setAttribute('fill', p.color || '#0f172a');
+      circle.setAttribute('filter', 'url(#shadow)');
       svgGroup.appendChild(circle);
     });
   }
@@ -940,13 +942,24 @@ class BoardRenderer {
     const startTime = Date.now();
     let lastRollFace = 1;
 
-    // Cycle through random dice numbers every 70ms so numbers are clearly seen rolling inside the die
+    // Cycle through random dice numbers every 75ms so numbers are clearly seen rolling inside the die
     await new Promise((resolve) => {
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        clearInterval(interval);
+        clearTimeout(fallback);
+        resolve();
+      };
+
+      // Guaranteed safety fallback so promise NEVER hangs
+      const fallback = setTimeout(finish, duration + 300);
+
       const interval = setInterval(() => {
         const elapsed = Date.now() - startTime;
         if (elapsed >= duration) {
-          clearInterval(interval);
-          resolve();
+          finish();
           return;
         }
 
@@ -957,10 +970,13 @@ class BoardRenderer {
         lastRollFace = nextFace;
 
         if (pipsGroup) {
-          pipsGroup.innerHTML = '';
-          this.drawDicePips(pipsGroup, nextFace, 48);
+          // 100% SVG-Safe DOM cleaning (never innerHTML on SVG elements!)
+          while (pipsGroup.firstChild) {
+            pipsGroup.removeChild(pipsGroup.firstChild);
+          }
+          this.drawDicePips(pipsGroup, nextFace, 56);
         }
-      }, 70);
+      }, 75);
     });
 
     cornerDiceEl.classList.remove('rolling');
@@ -968,8 +984,10 @@ class BoardRenderer {
     setTimeout(() => cornerDiceEl.classList.remove('roll-settled'), 450);
 
     if (pipsGroup) {
-      pipsGroup.innerHTML = '';
-      this.drawDicePips(pipsGroup, finalVal, 48);
+      while (pipsGroup.firstChild) {
+        pipsGroup.removeChild(pipsGroup.firstChild);
+      }
+      this.drawDicePips(pipsGroup, finalVal, 56);
     }
   }
 
@@ -1057,7 +1075,7 @@ class BoardRenderer {
     // User requested: "gota dice hota dikna chye jada fast h intna slow karo ki dek ja"
     const hopStepTime = 420; // ms per tile step (smooth GPU physical transition)
     const stepPause = 90;    // brief pause on landing for crisp observation
-    const pawnScale = this.game.boardType === 4 ? 1.25 : 1.05;
+    const pawnScale = this.game.boardType === 4 ? 1.36 : 1.08;
     const c = player.config;
     const colorKey = player.colorKey;
 
@@ -1232,7 +1250,7 @@ class BoardRenderer {
 
   renderSingleToken(container, token, player, x, y, scale = 1.0, isMovable = false) {
     const currentPlayer = this.game.getCurrentPlayer();
-    const pawnScale = (this.game.boardType === 4 ? 1.18 : 0.96) * scale;
+    const pawnScale = (this.game.boardType === 4 ? 1.36 : 1.08) * scale;
     const c = player.config;
     const colorKey = player.colorKey;
 
@@ -1247,47 +1265,47 @@ class BoardRenderer {
 
     innerG.innerHTML = `
       <!-- Generous Mobile Touch Hitbox (makes tapping effortlessly responsive on phones) -->
-      <circle cx="0" cy="0" r="32" fill="rgba(0,0,0,0.001)" pointer-events="all"/>
+      <circle cx="0" cy="0" r="36" fill="rgba(0,0,0,0.001)" pointer-events="all"/>
 
-      <!-- Pulsing Aura beneath goti when movable -->
+      <!-- Pulsing Golden Aura beneath goti when movable -->
       ${isMovable ? `
-        <ellipse class="token-aura" cx="0" cy="4" rx="26" ry="18" fill="url(#gold-aura)"/>
-        <ellipse cx="0" cy="4" rx="21" ry="14" fill="none" stroke="#fbbf24" stroke-width="2.6" opacity="0.95"/>
+        <ellipse class="token-aura" cx="0" cy="4" rx="28" ry="19" fill="url(#gold-aura)"/>
+        <ellipse cx="0" cy="4" rx="23" ry="15" fill="none" stroke="#fbbf24" stroke-width="2.8" opacity="0.95"/>
       ` : ''}
 
       <!-- Contact Shadow -->
-      <ellipse cx="0" cy="4" rx="19" ry="13" fill="rgba(0, 0, 0, 0.35)" filter="url(#shadow)"/>
+      <ellipse cx="0" cy="5" rx="21" ry="14" fill="rgba(0, 0, 0, 0.4)" filter="url(#shadow)"/>
 
-      <!-- Outer 3D Rim -->
-      <circle cx="0" cy="1" r="18.5" fill="${c.darkHex || '#000'}" filter="url(#pawn-shadow)"/>
+      <!-- Outer 3D Rim (Beveled edge) -->
+      <circle cx="0" cy="1" r="20" fill="${c.darkHex || '#000'}" filter="url(#pawn-shadow)"/>
 
       <!-- Colored Glossy Body -->
-      <circle cx="0" cy="0" r="17.5" fill="url(#token-body-${colorKey})"/>
-      <circle cx="0" cy="0" r="17" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.6"/>
+      <circle cx="0" cy="0" r="19" fill="url(#token-body-${colorKey})"/>
+      <circle cx="0" cy="0" r="18.5" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.7"/>
 
       <!-- Inner Recessed Step -->
-      <circle cx="0" cy="-0.5" r="12.5" fill="${c.darkHex || '#000'}" opacity="0.6"/>
-      <circle cx="0" cy="-1.5" r="11.5" fill="url(#token-head-${colorKey})"/>
-      <circle cx="0" cy="-1.5" r="11" fill="none" stroke="#ffffff" stroke-width="0.8" opacity="0.8"/>
+      <circle cx="0" cy="-0.5" r="14" fill="${c.darkHex || '#000'}" opacity="0.65"/>
+      <circle cx="0" cy="-1.5" r="13" fill="url(#token-head-${colorKey})"/>
+      <circle cx="0" cy="-1.5" r="12.5" fill="none" stroke="#ffffff" stroke-width="0.9" opacity="0.85"/>
 
       <!-- Specular Highlight Arc -->
-      <path d="M -10 -7 A 13 13 0 0 1 10 -7" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" fill="none" opacity="0.8"/>
+      <path d="M -11 -7.5 A 14 14 0 0 1 11 -7.5" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" fill="none" opacity="0.85"/>
 
-      <!-- Central Embossed Star ⭐ (Exact match to reference image!) -->
-      <polygon points="0,-7 2.2,-2.2 7,-2.2 3.2,0.8 4.6,5.5 0,2.5 -4.6,5.5 -3.2,0.8 -7,-2.2 -2.2,-2.2"
-               fill="#ffffff" stroke="${c.darkHex || '#000'}" stroke-width="0.8" filter="url(#shadow)"/>
-      <circle cx="0" cy="0" r="1.5" fill="#fef08a"/>
+      <!-- Central Embossed Star ⭐ (High-contrast 3D Star) -->
+      <polygon points="0,-7.8 2.5,-2.5 7.8,-2.5 3.5,0.9 5.2,6.2 0,2.8 -5.2,6.2 -3.5,0.9 -7.8,-2.5 -2.5,-2.5"
+               fill="#ffffff" stroke="${c.darkHex || '#000'}" stroke-width="0.9" filter="url(#shadow)"/>
+      <circle cx="0" cy="0" r="1.8" fill="#fef08a"/>
     `;
 
     g.appendChild(innerG);
 
-    // Touch & Click handler
+    // Touch & Click handler - User MUST tap goti directly to move (Zero Auto-Move)
     if (isMovable) {
       g.style.cursor = 'pointer';
       let lastTrigger = 0;
       const handleTap = (e) => {
         const now = Date.now();
-        if (now - lastTrigger < 350) return;
+        if (now - lastTrigger < 400) return;
         lastTrigger = now;
 
         e.preventDefault();

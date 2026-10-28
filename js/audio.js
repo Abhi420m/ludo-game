@@ -130,7 +130,7 @@ class SoundEngine {
     } catch (e) {}
   }
 
-  // Token Hop (Tok sound)
+  // Token Hop (Authentic Wooden/Peg Tok sound)
   playTokenStep() {
     try {
       if (this.muted) return;
@@ -138,21 +138,31 @@ class SoundEngine {
       if (!this.ctx) return;
 
       const now = this.ctx.currentTime;
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
+      // High initial crisp click
+      const osc1 = this.ctx.createOscillator();
+      const gain1 = this.ctx.createGain();
+      osc1.type = 'triangle';
+      osc1.frequency.setValueAtTime(620, now);
+      osc1.frequency.exponentialRampToValueAtTime(160, now + 0.04);
+      gain1.gain.setValueAtTime(0.35, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+      osc1.connect(gain1);
+      gain1.connect(this.ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.04);
 
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(540, now);
-      osc.frequency.exponentialRampToValueAtTime(180, now + 0.07);
-
-      gain.gain.setValueAtTime(0.3, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
-
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-
-      osc.start(now);
-      osc.stop(now + 0.07);
+      // Hollow body resonance
+      const osc2 = this.ctx.createOscillator();
+      const gain2 = this.ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(280, now + 0.008);
+      osc2.frequency.exponentialRampToValueAtTime(80, now + 0.08);
+      gain2.gain.setValueAtTime(0.25, now + 0.008);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      osc2.connect(gain2);
+      gain2.connect(this.ctx.destination);
+      osc2.start(now + 0.008);
+      osc2.stop(now + 0.08);
     } catch (e) {}
   }
 
