@@ -1021,7 +1021,6 @@ class BoardRenderer {
     // Inner 3D Star Goti Element (matches user's reference image!)
     const pawnInner = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     pawnInner.setAttribute('class', 'pawn-hop-inner');
-    pawnInner.setAttribute('transform', `scale(${pawnScale})`);
 
     pawnInner.innerHTML = `
       <!-- Contact Shadow -->
@@ -1058,12 +1057,12 @@ class BoardRenderer {
 
     // Initial position
     const startCoord = this.getTokenCoordinates(prevPos, player) || waypoints[0];
-    hopG.setAttribute('transform', `translate(${startCoord.x}, ${startCoord.y})`);
+    hopG.setAttribute('transform', `translate(${startCoord.x}, ${startCoord.y}) scale(${pawnScale})`);
 
     // Hop sequentially through each waypoint with visible slow step animation!
     for (let i = 0; i < waypoints.length; i++) {
       const pt = waypoints[i];
-      hopG.setAttribute('transform', `translate(${pt.x}, ${pt.y})`);
+      hopG.setAttribute('transform', `translate(${pt.x}, ${pt.y}) scale(${pawnScale})`);
       if (window.soundEngine) window.soundEngine.playTokenStep();
 
       // Smooth Jump Arc
@@ -1165,11 +1164,10 @@ class BoardRenderer {
     g.setAttribute('class', `token-group ${isMovable ? 'movable' : ''}`);
     g.setAttribute('data-token-id', token.id);
     g.setAttribute('data-player-id', player.id);
-    g.setAttribute('transform', `translate(${x}, ${y})`);
+    g.setAttribute('transform', `translate(${x}, ${y}) scale(${pawnScale})`);
 
     const innerG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     innerG.setAttribute('class', `pawn-container ${isMovable ? 'pawn-idle-bounce' : ''}`);
-    innerG.setAttribute('transform', `scale(${pawnScale})`);
 
     innerG.innerHTML = `
       <!-- Generous Mobile Touch Hitbox (makes tapping effortlessly responsive on phones) -->

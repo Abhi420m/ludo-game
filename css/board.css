@@ -4,20 +4,23 @@
 
 .token-group {
   transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+  transform-box: fill-box;
+  transform-origin: center center;
 }
 
 .token-group.movable {
   cursor: pointer;
 }
 
-.token-group.movable:active {
-  transform: scale(0.94);
+.token-group.movable:active .pawn-container {
+  transform: scale(0.92);
 }
 
 /* 3D Pawn Container */
 .pawn-container {
-  transform-origin: center bottom;
-  transition: filter 0.2s ease;
+  transform-box: fill-box;
+  transform-origin: center center;
+  transition: filter 0.2s ease, transform 0.15s ease;
 }
 
 .token-group.movable .pawn-container {
@@ -27,7 +30,8 @@
 /* Idle Bobbing / Bouncing Animation for Movable Pawns (Ludo King Signature) */
 .pawn-idle-bounce {
   animation: pawnBob 0.85s ease-in-out infinite;
-  transform-origin: center 14px;
+  transform-box: fill-box;
+  transform-origin: center center;
 }
 
 @keyframes pawnBob {
@@ -42,7 +46,8 @@
 /* Pulsing aura ring under the pawn */
 .token-aura {
   animation: pulseAura 1.4s ease-in-out infinite;
-  transform-origin: center 14px;
+  transform-box: fill-box;
+  transform-origin: center center;
 }
 
 @keyframes pulseAura {
@@ -58,8 +63,9 @@
 
 /* Hopping Arc Jump Animation during Step-by-Step Movement */
 .pawn-hop-inner.jump-arc {
-  animation: hopArcJump 0.1s cubic-bezier(0.25, 1, 0.5, 1);
-  transform-origin: center 14px;
+  animation: hopArcJump 0.22s cubic-bezier(0.25, 1, 0.5, 1);
+  transform-box: fill-box;
+  transform-origin: center center;
 }
 
 @keyframes hopArcJump {
@@ -67,7 +73,7 @@
     transform: translateY(0) scale(1);
   }
   50% {
-    transform: translateY(-22px) scale(1.22);
+    transform: translateY(-16px) scale(1.15);
   }
   100% {
     transform: translateY(0) scale(1);
