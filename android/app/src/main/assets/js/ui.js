@@ -134,6 +134,7 @@ class UIController {
     this.game = null;
     this.renderer = null;
     this.wakeLock = null;
+    this.isRolling = false;
     window.uiController = this;
 
     this.cacheDom();
@@ -427,8 +428,14 @@ class UIController {
     this.game = new LudoGame({
       ...options,
       onStateChange: () => {
+        this.isRolling = false;
         this.updateTurnHud();
-        this.renderer.renderTokens();
+        if (this.renderer) {
+          this.renderer.renderBoard();
+        }
+        if (this.game && this.game.turnState === 'WAITING_FOR_ROLL') {
+          this.checkBotTurn();
+        }
       },
       onDiceRolled: (val, player, penalty) => {
         this.animateDiceRoll(val, penalty);
@@ -545,17 +552,23 @@ class UIController {
     if (!this.game) return;
     const currentP = this.game.getCurrentPlayer();
 
-    // If waiting for move, tapping dice auto-picks the best move!
+    // User requested: "player apne hisb se hi gooti chale"
+    // When waiting for move, tapping the dice guides player to tap their own goti on the board!
     if (this.game.turnState === 'WAITING_FOR_MOVE' && !currentP.isBot) {
-      const bestMove = LudoAI.chooseBestMove(this.game, currentP, this.game.validMoves);
-      if (bestMove) {
-        window.soundEngine.playTokenStep();
-        this.game.moveToken(bestMove.tokenId, bestMove.targetPlayerId);
-        return;
-      }
+      this.showToast(
+        this.lang === 'hi' ? '👉 चलने के लिए बोर्ड पर अपनी गोटी छुएं!' : '👉 Tap your token on the board to move!',
+        'info'
+      );
+      this.vibrate([25]);
+      return;
     }
 
-    if (this.game.turnState !== 'WAITING_FOR_ROLL') return;
+    // Strict lock to enforce "bin 6 k ek chance hi mile" and prevent double-roll race conditions
+    if (this.isRolling || this.game.turnState !== 'WAITING_FOR_ROLL' || currentP.isBot) return;
+    this.isRolling = true;
+
+    // Immediately flag state as ANIMATING so rapid taps cannot fire twice
+    this.game.turnState = 'ANIMATING';
 
     window.soundEngine.playDiceRoll();
     this.vibrate([30]);
@@ -569,8 +582,13 @@ class UIController {
       this.dom.diceCube?.classList.remove('rolling');
       if (activeCornerDice) activeCornerDice.classList.remove('rolling');
 
+      // Revert to WAITING_FOR_ROLL so rollDice executes cleanly
+      this.game.turnState = 'WAITING_FOR_ROLL';
       const res = this.game.rollDice();
-      if (!res) return;
+      if (!res) {
+        this.isRolling = false;
+        return;
+      }
 
       this.updateDiceFace(res.value);
 
@@ -579,9 +597,17 @@ class UIController {
         this.renderer.renderBoard();
       }
 
-      // User requested: "player apne hisb se hi gooti chale"
-      // NO auto-move! Player decides and manually taps which token to move!
-    }, 350);
+      if (res.validMoves && res.validMoves.length > 0) {
+        // Player has movable tokens: waiting for user to tap goti
+        this.isRolling = false;
+      } else {
+        // No moves: passTurn will be called in rules.js after 950ms.
+        // Keep isRolling locked until the turn passes to next player
+        setTimeout(() => {
+          this.isRolling = false;
+        }, 1000);
+      }
+    }, 380);
   }
 
   animateDiceRoll(value, penalty) {
@@ -610,13 +636,19 @@ class UIController {
         if (!this.game || this.game.getCurrentPlayer().id !== player.id) return;
         window.soundEngine.playDiceRoll();
         this.dom.diceCube?.classList.add('rolling');
+        const activeCornerDice = this.dom.boardSvg?.querySelector('.corner-dice.active-turn');
+        if (activeCornerDice) activeCornerDice.classList.add('rolling');
 
         setTimeout(() => {
           this.dom.diceCube?.classList.remove('rolling');
+          if (activeCornerDice) activeCornerDice.classList.remove('rolling');
           const res = this.game.rollDice();
           if (!res) return;
 
           this.updateDiceFace(res.value);
+          if (this.renderer) {
+            this.renderer.renderBoard();
+          }
 
           // Now Bot picks move
           if (this.game.turnState === 'WAITING_FOR_MOVE') {

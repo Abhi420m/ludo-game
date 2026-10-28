@@ -179,7 +179,7 @@ class LudoGame {
       setTimeout(() => {
         this.turnState = 'WAITING_FOR_ROLL';
         this.passTurn();
-      }, 700);
+      }, 950);
       return { value, validMoves: [] };
     }
 

@@ -603,9 +603,9 @@ class BoardRenderer {
           badgeTxt.setAttribute('font-weight', '900');
           badgeTxt.setAttribute('fill', '#0f172a');
           if (isRollingForPartner) {
-            badgeTxt.textContent = this.game.turnState === 'WAITING_FOR_ROLL' ? '🤝 ROLL' : '🤝 MOVE';
+            badgeTxt.textContent = this.game.turnState === 'WAITING_FOR_ROLL' ? '🤝 ROLL' : '🤝 GOTI';
           } else {
-            badgeTxt.textContent = this.game.turnState === 'WAITING_FOR_ROLL' ? '🎲 TAP' : '⏩ MOVE';
+            badgeTxt.textContent = this.game.turnState === 'WAITING_FOR_ROLL' ? '🎲 TAP' : '👉 GOTI';
           }
           badgeG.appendChild(badgeTxt);
 
@@ -618,7 +618,7 @@ class BoardRenderer {
           let lastTap = 0;
           const handleKothaTap = (e) => {
             const now = Date.now();
-            if (now - lastTap < 400) return;
+            if (now - lastTap < 600) return;
             lastTap = now;
 
             e.preventDefault();
@@ -629,7 +629,14 @@ class BoardRenderer {
           };
 
           g.addEventListener('touchstart', handleKothaTap, { passive: false });
-          g.addEventListener('click', handleKothaTap);
+          g.addEventListener('click', (e) => {
+            if (Date.now() - lastTap < 600) {
+              e.preventDefault();
+              e.stopPropagation();
+              return;
+            }
+            handleKothaTap(e);
+          });
         }
 
         g.appendChild(diceG);
@@ -998,8 +1005,8 @@ class BoardRenderer {
       return;
     }
 
-    // User requested: "or chalne ki speed thoda slow karo jise dike chalte hua"
-    const hopDuration = 260; // ms per step (slow, visible jump arc!)
+    // User requested: "speed thodi slow kar"
+    const hopDuration = 340; // ms per step (slow, visible jump arc!)
     const pawnScale = this.game.boardType === 4 ? 1.25 : 1.05;
     const c = player.config;
     const colorKey = player.colorKey;
