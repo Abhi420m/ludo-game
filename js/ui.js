@@ -548,7 +548,7 @@ class UIController {
   }
 
   // 3D Animated Dice Roll & Single-Tap Play
-  triggerDiceRoll() {
+  async triggerDiceRoll() {
     if (!this.game) return;
     const currentP = this.game.getCurrentPlayer();
 
@@ -571,43 +571,50 @@ class UIController {
     this.game.turnState = 'ANIMATING';
 
     window.soundEngine.playDiceRoll();
-    this.vibrate([30]);
-    this.dom.diceCube?.classList.add('rolling');
+    this.vibrate([35]);
 
-    // Also animate active corner dice on board
+    // Active corner dice on board
     const activeCornerDice = this.dom.boardSvg?.querySelector('.corner-dice.active-turn');
-    if (activeCornerDice) activeCornerDice.classList.add('rolling');
 
-    setTimeout(() => {
-      this.dom.diceCube?.classList.remove('rolling');
-      if (activeCornerDice) activeCornerDice.classList.remove('rolling');
+    // Roll dice value in rules
+    this.game.turnState = 'WAITING_FOR_ROLL';
+    const res = this.game.rollDice();
+    if (!res) {
+      this.isRolling = false;
+      return;
+    }
 
-      // Revert to WAITING_FOR_ROLL so rollDice executes cleanly
-      this.game.turnState = 'WAITING_FOR_ROLL';
-      const res = this.game.rollDice();
-      if (!res) {
-        this.isRolling = false;
-        return;
-      }
+    this.game.turnState = 'ANIMATING';
 
-      this.updateDiceFace(res.value);
+    // User requested: "dice pe roll hote bich me dice me dikna chaye... itna slow karo ki dikh jaye"
+    // 850ms tumbling animation showing the dots inside the die face actively cycling!
+    if (this.renderer && activeCornerDice) {
+      await this.renderer.animateDiceRollVisual(activeCornerDice, res.value, 850);
+    } else {
+      await new Promise((r) => setTimeout(r, 850));
+    }
 
-      // Re-render corner dice to show new number
+    this.updateDiceFace(res.value);
+
+    if (res.validMoves && res.validMoves.length > 0) {
+      // Player has movable tokens: wait for player to tap goti on board
+      this.game.turnState = 'WAITING_FOR_MOVE';
       if (this.renderer) {
         this.renderer.renderBoard();
       }
-
-      if (res.validMoves && res.validMoves.length > 0) {
-        // Player has movable tokens: waiting for user to tap goti
-        this.isRolling = false;
-      } else {
-        // No moves: passTurn will be called in rules.js after 950ms.
-        // Keep isRolling locked until the turn passes to next player
-        setTimeout(() => {
-          this.isRolling = false;
-        }, 1000);
+      this.isRolling = false;
+    } else {
+      // No moves (rolled 1-5 without opened goti):
+      // Keep turnState as ANIMATING for 1.1s so player clearly sees the rolled number
+      if (this.renderer) {
+        this.renderer.renderBoard();
       }
-    }, 380);
+      setTimeout(() => {
+        this.game.turnState = 'WAITING_FOR_ROLL';
+        this.game.passTurn();
+        this.isRolling = false;
+      }, 1100);
+    }
   }
 
   animateDiceRoll(value, penalty) {
@@ -632,35 +639,47 @@ class UIController {
     if (!player || !player.isBot) return;
 
     if (this.game.turnState === 'WAITING_FOR_ROLL') {
-      setTimeout(() => {
+      setTimeout(async () => {
         if (!this.game || this.game.getCurrentPlayer().id !== player.id) return;
         window.soundEngine.playDiceRoll();
-        this.dom.diceCube?.classList.add('rolling');
+
         const activeCornerDice = this.dom.boardSvg?.querySelector('.corner-dice.active-turn');
-        if (activeCornerDice) activeCornerDice.classList.add('rolling');
+        const res = this.game.rollDice();
+        if (!res) return;
 
-        setTimeout(() => {
-          this.dom.diceCube?.classList.remove('rolling');
-          if (activeCornerDice) activeCornerDice.classList.remove('rolling');
-          const res = this.game.rollDice();
-          if (!res) return;
+        this.game.turnState = 'ANIMATING';
+        if (this.renderer && activeCornerDice) {
+          await this.renderer.animateDiceRollVisual(activeCornerDice, res.value, 850);
+        } else {
+          await new Promise((r) => setTimeout(r, 850));
+        }
 
-          this.updateDiceFace(res.value);
+        this.updateDiceFace(res.value);
+
+        if (res.validMoves && res.validMoves.length > 0) {
+          this.game.turnState = 'WAITING_FOR_MOVE';
           if (this.renderer) {
             this.renderer.renderBoard();
           }
 
-          // Now Bot picks move
-          if (this.game.turnState === 'WAITING_FOR_MOVE') {
-            setTimeout(() => {
-              const bestMove = LudoAI.chooseBestMove(this.game, player, this.game.validMoves);
-              if (bestMove) {
-                window.soundEngine.playTokenStep();
-                this.game.moveToken(bestMove.tokenId, bestMove.targetPlayerId);
-              }
-            }, 600);
+          // Bot picks move after 700ms
+          setTimeout(() => {
+            const bestMove = LudoAI.chooseBestMove(this.game, player, this.game.validMoves);
+            if (bestMove) {
+              window.soundEngine.playTokenStep();
+              this.game.moveToken(bestMove.tokenId, bestMove.targetPlayerId);
+            }
+          }, 700);
+        } else {
+          // No moves for bot
+          if (this.renderer) {
+            this.renderer.renderBoard();
           }
-        }, 450);
+          setTimeout(() => {
+            this.game.turnState = 'WAITING_FOR_ROLL';
+            this.game.passTurn();
+          }, 1100);
+        }
       }, 700);
     }
   }

@@ -63,7 +63,7 @@
 
 /* Hopping Arc Jump Animation during Step-by-Step Movement */
 .pawn-hop-inner.jump-arc {
-  animation: hopArcJump 0.32s cubic-bezier(0.25, 1, 0.5, 1);
+  animation: hopArcJump 0.42s cubic-bezier(0.25, 1, 0.5, 1);
   transform-box: fill-box;
   transform-origin: center center;
 }
@@ -72,8 +72,8 @@
   0% {
     transform: translateY(0) scale(1);
   }
-  50% {
-    transform: translateY(-20px) scale(1.18);
+  45% {
+    transform: translateY(-26px) scale(1.24);
   }
   100% {
     transform: translateY(0) scale(1);
@@ -104,6 +104,8 @@
    PASS & PLAY CORNER DICE STYLES
 ---------------------------------------------------- */
 .corner-dice {
+  transform-box: fill-box;
+  transform-origin: center center;
   transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
@@ -113,16 +115,40 @@
 }
 
 .corner-dice.rolling {
-  animation: diceRollShake 0.45s cubic-bezier(0.25, 1, 0.5, 1);
+  animation: diceRealisticTumble 0.85s cubic-bezier(0.25, 0.8, 0.35, 1);
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 18px #f59e0b);
+}
+
+.corner-dice.roll-settled {
+  animation: diceSettleBounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes diceRealisticTumble {
+  0% { transform: scale(1) rotate(0deg); }
+  15% { transform: scale(1.35) rotate(-28deg); }
+  35% { transform: scale(1.42) rotate(32deg); }
+  55% { transform: scale(1.38) rotate(-22deg); }
+  75% { transform: scale(1.32) rotate(14deg); }
+  90% { transform: scale(1.22) rotate(-5deg); }
+  100% { transform: scale(1.25) rotate(0deg); }
+}
+
+@keyframes diceSettleBounce {
+  0% { transform: scale(1.35); }
+  50% { transform: scale(0.92); }
+  100% { transform: scale(1); }
 }
 
 .dice-aura {
   animation: pulseDiceAura 1.2s ease-in-out infinite;
-  transform-origin: center;
+  transform-box: fill-box;
+  transform-origin: center center;
 }
 
 .dice-tap-badge {
   animation: floatTapBadge 1.2s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center center;
 }
 
 @keyframes pulseDiceAura {
@@ -143,14 +169,6 @@
   50% {
     transform: translateY(-5px);
   }
-}
-
-@keyframes diceRollShake {
-  0% { transform: rotate(0deg) scale(1); }
-  25% { transform: rotate(-15deg) scale(1.12); }
-  50% { transform: rotate(15deg) scale(1.18); }
-  75% { transform: rotate(-10deg) scale(1.08); }
-  100% { transform: rotate(0deg) scale(1); }
 }
 
 /* Player External Kotha Box & Active Turn Glow */

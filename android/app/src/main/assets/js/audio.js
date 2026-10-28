@@ -83,7 +83,7 @@ class SoundEngine {
     } catch (e) {}
   }
 
-  // Dice rolling rattle
+  // Dice rolling rattle - timed for 850ms realistic roll
   playDiceRoll() {
     try {
       if (this.muted) return;
@@ -91,42 +91,42 @@ class SoundEngine {
       if (!this.ctx) return;
 
       const now = this.ctx.currentTime;
-      const rattleCount = 6;
+      const rattleCount = 10;
       for (let i = 0; i < rattleCount; i++) {
-        const clickTime = now + (i * 0.07) + (Math.random() * 0.02);
+        const clickTime = now + (i * 0.08) + (Math.random() * 0.015);
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
 
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(220 + Math.random() * 400, clickTime);
-        osc.frequency.exponentialRampToValueAtTime(80, clickTime + 0.03);
+        osc.frequency.setValueAtTime(240 + Math.random() * 380, clickTime);
+        osc.frequency.exponentialRampToValueAtTime(80, clickTime + 0.035);
 
-        gain.gain.setValueAtTime(0.2, clickTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, clickTime + 0.03);
+        gain.gain.setValueAtTime(0.22, clickTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, clickTime + 0.035);
 
         osc.connect(gain);
         gain.connect(this.ctx.destination);
 
         osc.start(clickTime);
-        osc.stop(clickTime + 0.03);
+        osc.stop(clickTime + 0.035);
       }
 
-      // Final solid thud
-      const finalTime = now + 0.45;
+      // Final solid landing thud at 820ms
+      const finalTime = now + 0.82;
       const thudOsc = this.ctx.createOscillator();
       const thudGain = this.ctx.createGain();
       thudOsc.type = 'sine';
-      thudOsc.frequency.setValueAtTime(120, finalTime);
-      thudOsc.frequency.exponentialRampToValueAtTime(40, finalTime + 0.09);
+      thudOsc.frequency.setValueAtTime(140, finalTime);
+      thudOsc.frequency.exponentialRampToValueAtTime(45, finalTime + 0.12);
 
-      thudGain.gain.setValueAtTime(0.3, finalTime);
-      thudGain.gain.exponentialRampToValueAtTime(0.001, finalTime + 0.09);
+      thudGain.gain.setValueAtTime(0.35, finalTime);
+      thudGain.gain.exponentialRampToValueAtTime(0.001, finalTime + 0.12);
 
       thudOsc.connect(thudGain);
       thudGain.connect(this.ctx.destination);
 
       thudOsc.start(finalTime);
-      thudOsc.stop(finalTime + 0.09);
+      thudOsc.stop(finalTime + 0.12);
     } catch (e) {}
   }
 

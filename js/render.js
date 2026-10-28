@@ -548,35 +548,39 @@ class BoardRenderer {
         const diceVal = this.game.currentRoll || 6;
         const diceG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         diceG.setAttribute('class', 'corner-dice active-turn');
+        diceG.setAttribute('id', `corner-dice-${player.id}`);
         diceG.setAttribute('transform', `translate(${diceCenterX}, ${diceCenterY})`);
 
         // Pulsing active aura
         const aura = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         aura.setAttribute('class', 'dice-aura');
-        aura.setAttribute('x', '-26');
-        aura.setAttribute('y', '-26');
-        aura.setAttribute('width', '52');
-        aura.setAttribute('height', '52');
-        aura.setAttribute('rx', '12');
+        aura.setAttribute('x', '-28');
+        aura.setAttribute('y', '-28');
+        aura.setAttribute('width', '56');
+        aura.setAttribute('height', '56');
+        aura.setAttribute('rx', '14');
         aura.setAttribute('fill', c.hex);
         aura.setAttribute('opacity', '0.45');
         diceG.appendChild(aura);
 
         // 3D White Die Box
         const dieBox = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        dieBox.setAttribute('x', '-22');
-        dieBox.setAttribute('y', '-22');
-        dieBox.setAttribute('width', '44');
-        dieBox.setAttribute('height', '44');
-        dieBox.setAttribute('rx', '10');
+        dieBox.setAttribute('x', '-24');
+        dieBox.setAttribute('y', '-24');
+        dieBox.setAttribute('width', '48');
+        dieBox.setAttribute('height', '48');
+        dieBox.setAttribute('rx', '11');
         dieBox.setAttribute('fill', '#ffffff');
         dieBox.setAttribute('stroke', c.hex);
-        dieBox.setAttribute('stroke-width', '2.5');
+        dieBox.setAttribute('stroke-width', '2.8');
         dieBox.setAttribute('filter', 'url(#pawn-shadow)');
         diceG.appendChild(dieBox);
 
-        // Draw Pips
-        this.drawDicePips(diceG, diceVal, 44);
+        // Dedicated Pips Group (animated dynamically during roll!)
+        const pipsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        pipsGroup.setAttribute('class', 'dice-pips-group');
+        this.drawDicePips(pipsGroup, diceVal, 48);
+        diceG.appendChild(pipsGroup);
 
         // "TAP" floating badge
         if (this.game.turnState === 'WAITING_FOR_ROLL' || this.game.turnState === 'WAITING_FOR_MOVE') {
@@ -890,15 +894,16 @@ class BoardRenderer {
   }
 
   /* ----------------------------------------------------
-     DICE PIPS DRAWING
+     DICE PIPS DRAWING & REALISTIC ROLL ANIMATION
   ---------------------------------------------------- */
-  drawDicePips(svgGroup, value, size = 44) {
+  drawDicePips(svgGroup, value, size = 48) {
     const offset = size * 0.25;
-    const r = size * 0.09;
+    const r = size * 0.095;
 
     const pips = [];
     if (value === 1) {
-      pips.push({ x: 0, y: 0, color: '#e52521', r: r * 1.4 });
+      // Big bold Red Center Pip (Ludo Signature)
+      pips.push({ x: 0, y: 0, color: '#ef4444', r: r * 1.5 });
     } else if (value === 2) {
       pips.push({ x: -offset, y: -offset }, { x: offset, y: offset });
     } else if (value === 3) {
@@ -922,6 +927,50 @@ class BoardRenderer {
       circle.setAttribute('fill', p.color || '#0f172a');
       svgGroup.appendChild(circle);
     });
+  }
+
+  // User requested: "dice pe roll hote bich me dice me dikna chaye... itna slow karo ki dikh jaye"
+  // Dynamic 850ms tumbling animation showing the dots inside the die face cycling visibly!
+  async animateDiceRollVisual(cornerDiceEl, finalVal, duration = 850) {
+    if (!cornerDiceEl) return;
+    const pipsGroup = cornerDiceEl.querySelector('.dice-pips-group');
+    cornerDiceEl.classList.remove('roll-settled');
+    cornerDiceEl.classList.add('rolling');
+
+    const startTime = Date.now();
+    let lastRollFace = 1;
+
+    // Cycle through random dice numbers every 70ms so numbers are clearly seen rolling inside the die
+    await new Promise((resolve) => {
+      const interval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        if (elapsed >= duration) {
+          clearInterval(interval);
+          resolve();
+          return;
+        }
+
+        let nextFace;
+        do {
+          nextFace = Math.floor(Math.random() * 6) + 1;
+        } while (nextFace === lastRollFace);
+        lastRollFace = nextFace;
+
+        if (pipsGroup) {
+          pipsGroup.innerHTML = '';
+          this.drawDicePips(pipsGroup, nextFace, 48);
+        }
+      }, 70);
+    });
+
+    cornerDiceEl.classList.remove('rolling');
+    cornerDiceEl.classList.add('roll-settled');
+    setTimeout(() => cornerDiceEl.classList.remove('roll-settled'), 450);
+
+    if (pipsGroup) {
+      pipsGroup.innerHTML = '';
+      this.drawDicePips(pipsGroup, finalVal, 48);
+    }
   }
 
   /* ----------------------------------------------------
@@ -1005,8 +1054,9 @@ class BoardRenderer {
       return;
     }
 
-    // User requested: "speed thodi slow kar"
-    const hopDuration = 340; // ms per step (slow, visible jump arc!)
+    // User requested: "gota dice hota dikna chye jada fast h intna slow karo ki dek ja"
+    const hopStepTime = 420; // ms per tile step (smooth GPU physical transition)
+    const stepPause = 90;    // brief pause on landing for crisp observation
     const pawnScale = this.game.boardType === 4 ? 1.25 : 1.05;
     const c = player.config;
     const colorKey = player.colorKey;
@@ -1018,10 +1068,10 @@ class BoardRenderer {
 
     // Step counter badge (+roll) above hopping token
     const rollBadge = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    rollBadge.setAttribute('transform', 'translate(0, -38)');
+    rollBadge.setAttribute('transform', 'translate(0, -42)');
     rollBadge.innerHTML = `
-      <rect x="-24" y="-11" width="48" height="22" rx="11" fill="#f59e0b" stroke="#ffffff" stroke-width="1.8" filter="url(#shadow)"/>
-      <text text-anchor="middle" dy="0.35em" font-size="12" font-weight="900" fill="#0f172a">+${this.game.currentRoll}</text>
+      <rect x="-26" y="-12" width="52" height="24" rx="12" fill="#f59e0b" stroke="#ffffff" stroke-width="2" filter="url(#shadow)"/>
+      <text id="hop-step-text" text-anchor="middle" dy="0.35em" font-size="12" font-weight="900" fill="#0f172a">+${this.game.currentRoll}</text>
     `;
     hopG.appendChild(rollBadge);
 
@@ -1062,19 +1112,38 @@ class BoardRenderer {
 
     this.svg.appendChild(hopG);
 
-    // Initial position
+    // Initial position without transition
     const startCoord = this.getTokenCoordinates(prevPos, player) || waypoints[0];
+    hopG.style.transition = 'none';
     hopG.setAttribute('transform', `translate(${startCoord.x}, ${startCoord.y}) scale(${pawnScale})`);
+    void hopG.getBoundingClientRect(); // flush styles
+
+    // Enable smooth physical transition for tile-by-tile leaping
+    hopG.style.transition = `transform ${hopStepTime}ms cubic-bezier(0.25, 0.9, 0.35, 1)`;
+
+    const stepTextEl = rollBadge.querySelector('#hop-step-text');
 
     // Hop sequentially through each waypoint with visible slow step animation!
     for (let i = 0; i < waypoints.length; i++) {
       const pt = waypoints[i];
-      hopG.setAttribute('transform', `translate(${pt.x}, ${pt.y}) scale(${pawnScale})`);
-      if (window.soundEngine) window.soundEngine.playTokenStep();
+      const remainingSteps = waypoints.length - i;
+      if (stepTextEl) {
+        stepTextEl.textContent = `+${remainingSteps}`;
+      }
 
       // Smooth Jump Arc
+      pawnInner.classList.remove('jump-arc');
+      void pawnInner.getBoundingClientRect();
       pawnInner.classList.add('jump-arc');
-      await new Promise((r) => setTimeout(r, hopDuration));
+
+      // Physically animate to the next tile
+      hopG.setAttribute('transform', `translate(${pt.x}, ${pt.y}) scale(${pawnScale})`);
+
+      if (window.soundEngine) {
+        setTimeout(() => window.soundEngine.playTokenStep(), Math.round(hopStepTime * 0.45));
+      }
+
+      await new Promise((r) => setTimeout(r, hopStepTime + stepPause));
       pawnInner.classList.remove('jump-arc');
     }
 

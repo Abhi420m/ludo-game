@@ -176,10 +176,6 @@ class LudoGame {
     if (this.validMoves.length === 0) {
       this.turnState = 'ANIMATING';
       this.onDiceRolled(value, this.getCurrentPlayer(), false);
-      setTimeout(() => {
-        this.turnState = 'WAITING_FOR_ROLL';
-        this.passTurn();
-      }, 950);
       return { value, validMoves: [] };
     }
 
