@@ -199,7 +199,10 @@ const BOARD_4_CONFIG = {
   starTiles: [8, 21, 34, 47],
 
   // Starting indices (also safe)
-  startTiles: [0, 13, 26, 39]
+  startTiles: [0, 13, 26, 39],
+
+  // Combined Safe Tiles (Stars + Starts)
+  safeTiles: [0, 8, 13, 21, 26, 34, 39, 47]
 };
 
 if (typeof window !== 'undefined') {

@@ -24,7 +24,8 @@ class LudoAI {
 
   static evaluateMove(game, player, move) {
     let score = 0;
-    const token = player.tokens[move.tokenId];
+    const targetPlayer = move.targetPlayerId !== undefined ? game.players[move.targetPlayerId] : player;
+    const token = targetPlayer.tokens[move.tokenId];
     const N = game.totalTrackTiles;
     const dest = move.destination;
 
@@ -36,11 +37,12 @@ class LudoAI {
 
     // 2. KILL OPPONENT TOKEN (Critical priority, especially if gate locked)
     if (dest.state === 'TRACK') {
-      const isDestSafe = game.boardConfig.safeTiles.includes(dest.trackIndex);
+      const isDestSafe = (game.boardConfig.safeTiles || []).includes(dest.trackIndex);
       if (!isDestSafe) {
         let wouldKill = false;
         for (const op of game.players) {
-          if (op.id === player.id) continue;
+          if (op.id === targetPlayer.id) continue;
+          if (game.teamMode && op.teamId === targetPlayer.teamId) continue;
           for (const opT of op.tokens) {
             if (opT.state === 'TRACK' && opT.trackIndex === dest.trackIndex) {
               wouldKill = true;
@@ -52,7 +54,7 @@ class LudoAI {
 
         if (wouldKill) {
           // If gate is locked, killing an opponent is top priority!
-          score += !player.hasKilledOpponent ? 950 : 800;
+          score += !targetPlayer.hasKilledOpponent ? 950 : 800;
         }
       }
     }
@@ -60,7 +62,7 @@ class LudoAI {
     // 3. EXIT BASE ON 6
     if (move.action === 'EXIT_BASE') {
       // If player has few tokens on board, exiting is very important
-      const activeTokens = player.tokens.filter((t) => t.state === 'TRACK' || t.state === 'HOME_PATH').length;
+      const activeTokens = targetPlayer.tokens.filter((t) => t.state === 'TRACK' || t.state === 'HOME_PATH').length;
       if (activeTokens === 0) score += 750;
       else if (activeTokens === 1) score += 550;
       else score += 400;
@@ -75,15 +77,16 @@ class LudoAI {
     }
 
     // 5. LAND ON SAFE TILE (Star or Start)
-    if (dest.state === 'TRACK' && game.boardConfig.safeTiles.includes(dest.trackIndex)) {
+    if (dest.state === 'TRACK' && (game.boardConfig.safeTiles || []).includes(dest.trackIndex)) {
       score += 300;
     }
 
     // 6. ESCAPE DANGER (Token was in danger on current square)
-    if (token.state === 'TRACK' && !game.boardConfig.safeTiles.includes(token.trackIndex)) {
+    if (token.state === 'TRACK' && !(game.boardConfig.safeTiles || []).includes(token.trackIndex)) {
       let isThreatened = false;
       for (const op of game.players) {
-        if (op.id === player.id) continue;
+        if (op.id === targetPlayer.id) continue;
+        if (game.teamMode && op.teamId === targetPlayer.teamId) continue;
         for (const opT of op.tokens) {
           if (opT.state === 'TRACK') {
             const distance = (token.trackIndex - opT.trackIndex + N) % N;
@@ -101,13 +104,26 @@ class LudoAI {
     }
 
     // 7. AVOID LANDING IN FRONT OF OPPONENT
-    if (dest.state === 'TRACK' && !game.boardConfig.safeTiles.includes(dest.trackIndex)) {
+    if (dest.state === 'TRACK' && !(game.boardConfig.safeTiles || []).includes(dest.trackIndex)) {
       let landingDanger = false;
       for (const op of game.players) {
-        if (op.id === player.id) continue;
+        if (op.id === targetPlayer.id) continue;
+        if (game.teamMode && op.teamId === targetPlayer.teamId) continue;
         for (const opT of op.tokens) {
           if (opT.state === 'TRACK') {
             const dist = (dest.trackIndex - opT.trackIndex + N) % N;
+            if (dist >= 1 && dist <= 6) {
+              landingDanger = true;
+              break;
+            }
+          }
+        }
+        if (landingDanger) break;
+      }
+      if (landingDanger) {
+        score -= 180; // Penalty for placing token in danger
+      }
+    }
             if (dist >= 1 && dist <= 6) {
               landingDanger = true;
               break;

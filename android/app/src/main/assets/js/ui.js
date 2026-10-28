@@ -31,13 +31,32 @@ const TRANSLATIONS = {
     btnRules: 'नियम',
     rulesTitle: 'लूडो नियम (Rules)',
     rulesContent: `
-      <ul>
-        <li><strong>🎯 मुख्य नियम (User Requested):</strong> जब तक आप विरोधी की कम से कम 1 गोटी नहीं काटते, आपकी कोई भी गोटी 'होम लेन' (घर के अंदर) नहीं जा सकती! यदि गोटी गेट तक पहुँच भी जाए, तो उसे बाहर दूसरा चक्कर लगाना पड़ेगा।</li>
-        <li><strong>🎲 पासा (Dice):</strong> 6 आने पर बेस से गोटी बाहर निकलती है और दोबारा पासा फेंकने का मौका मिलता है।</li>
-        <li><strong>⚔️ गोटी काटना:</strong> विरोधी की गोटी पर पहुँचने पर वह कटकर बेस में चली जाती है और आपको +1 बोनस रोल मिलता है!</li>
-        <li><strong>⭐ सुरक्षित स्थान:</strong> स्टार (Star) और शुरुआती स्थान पर गोटी सुरक्षित रहती है, वहाँ गोटी नहीं काटी जा सकती।</li>
-        <li><strong>👥 खिलाड़ी:</strong> 2, 3, 4, 5, 6 खिलाड़ी एक साथ खेल सकते हैं (Hexagon और Classic Board)।</li>
-      </ul>
+      <div style="text-align: left; line-height: 1.6; font-size: 0.88rem;">
+        <h3 style="color: #fbbf24; margin-bottom: 6px;">🏠 1. गोटी खोलने और चाल के नियम (6 का नियम)</h3>
+        <ul>
+          <li><strong>6 आने पर गोटी खुलना:</strong> बेस (Base) से गोटी को बाहर निकालने के लिए पासे पर 6 आना ज़रूरी है।</li>
+          <li><strong>एक्स्ट्रा चांस (Bonus Turn):</strong> पासे पर 6 आने पर, विरोधी की गोटी काटने पर, या गोटी होम पहुंचने पर अतिरिक्त मौका मिलता है।</li>
+          <li><strong>लगातार तीन 6 का नियम:</strong> यदि लगातार 3 बार 6 आता है, तो वह टर्न रद्द (Cancel) हो जाती है (अधिकतम 2 छक्के मान्य)।</li>
+        </ul>
+
+        <h3 style="color: #fbbf24; margin: 12px 0 6px;">⚔️ 2. गोटी काटना (तोड़) और अंदर जाने का नियम (Core Custom Rule)</h3>
+        <ul>
+          <li><strong>बिना तोड़ के अंदर ना जाना:</strong> जब तक आप विरोधी की कम से कम 1 गोटी नहीं काटते, आपकी कोई भी गोटी अंतिम विजयी रास्ते (Home Path) या घर में प्रवेश नहीं कर सकती। गोटी मुहाने (Entrance) पर रुक जाएगी या बाहर दूसरा चक्कर लगाएगी।</li>
+          <li><strong>स्टार (*) सुरक्षित स्थान:</strong> स्टार वाले सुरक्षित खानों (Safe Zones) में गोटियां बिल्कुल सुरक्षित हैं, वहाँ कोई किसी को नहीं काट सकता।</li>
+        </ul>
+
+        <h3 style="color: #fbbf24; margin: 12px 0 6px;">👥 3. लूडो किंग 2v2 Team Up Mode (टीम मोड नियम)</h3>
+        <ul>
+          <li><strong>टीम की बनावट:</strong> 4 खिलाड़ी मिलकर 2 टीमें बनाते हैं:
+            <br>• <strong>Team 1:</strong> ब्लू (Blue) और ग्रीन (Green)
+            <br>• <strong>Team 2:</strong> रेड (Red) और यलो (Yellow)
+            <br>आमने-सामने बैठने वाले खिलाड़ी एक ही टीम के पार्टनर होते हैं।
+          </li>
+          <li><strong>गोटी काटना:</strong> आप सिर्फ विरोधी टीम की गोटी काट सकते हैं। अपने पार्टनर की गोटी को कभी नहीं काटा जा सकता। किसी भी पार्टनर के गोटी काटते ही पूरी टीम के लिए होम गेट खुल जाता है।</li>
+          <li><strong>🤝 रोलिंग सपोर्ट (Partner Rolling Support):</strong> अगर आपकी सभी 4 गोटियां होम पहुंच जाती हैं, तब भी आपका खेल खत्म नहीं होता! आप अपनी टर्न पर पासा रोल करना जारी रखेंगे, ताकि मिले हुए नंबरों से आपका पार्टनर अपनी गोटियां आगे बढ़ा सके और जल्दी होम पहुंच सके!</li>
+          <li><strong>जीत का नियम:</strong> जिस टीम के दोनों खिलाड़ियों की सभी 8 गोटियां (4 + 4) होम ट्रायंगल के अंदर पहुंच जाती हैं, वह टीम जीतती है!</li>
+        </ul>
+      </div>
     `
   },
   en: {
@@ -68,13 +87,28 @@ const TRANSLATIONS = {
     btnRules: 'Rules',
     rulesTitle: 'Ludo Rules',
     rulesContent: `
-      <ul>
-        <li><strong>🎯 Highlight Rule:</strong> You CANNOT enter the colored Home Path until you have captured at least 1 opponent token! Tokens arriving at the gate will be forced to take another round until a kill is secured.</li>
-        <li><strong>🎲 Dice:</strong> Roll a 6 to open a token from Base. Rolling 6 awards a bonus roll.</li>
-        <li><strong>⚔️ Capture:</strong> Landing on an opponent token sends it back to Base and awards a bonus roll!</li>
-        <li><strong>⭐ Safe Zones:</strong> Star tiles and start tiles are safe. Tokens cannot be captured there.</li>
-        <li><strong>👥 Players:</strong> Supports 2, 3, 4, 5, or 6 players simultaneously!</li>
-      </ul>
+      <div style="text-align: left; line-height: 1.6; font-size: 0.88rem;">
+        <h3 style="color: #fbbf24; margin-bottom: 6px;">🏠 1. Token Opening & Movement (Rule of 6)</h3>
+        <ul>
+          <li><strong>Roll 6 to Exit Base:</strong> Need a 6 to open a token from Base.</li>
+          <li><strong>Bonus Turn:</strong> Rolling a 6, capturing an opponent, or reaching home grants an extra roll.</li>
+          <li><strong>Three 6s Rule:</strong> 3 consecutive 6s cancels the turn (max 2 sixes in a row).</li>
+        </ul>
+
+        <h3 style="color: #fbbf24; margin: 12px 0 6px;">⚔️ 2. Capture & Home Entrance (Kill Required)</h3>
+        <ul>
+          <li><strong>Kill Required:</strong> You cannot enter the colored Home Path until at least 1 opponent token has been captured.</li>
+          <li><strong>Star Safe Zones:</strong> Star tiles ⭐ are completely safe from capture.</li>
+        </ul>
+
+        <h3 style="color: #fbbf24; margin: 12px 0 6px;">👥 3. Ludo King 2v2 Team Up Mode</h3>
+        <ul>
+          <li><strong>Teams:</strong> Team 1 (Blue + Green) vs Team 2 (Red + Yellow). Diagonally opposite players are partners.</li>
+          <li><strong>Ally Safe:</strong> Teammates never capture each other. Capturing an opponent unlocks Home for both teammates.</li>
+          <li><strong>🤝 Rolling Support:</strong> When all 4 of your tokens reach Home, you still continue rolling on your turns to move your partner's tokens and help them win!</li>
+          <li><strong>Winning:</strong> First team to bring all 8 tokens (4 + 4) into Home wins!</li>
+        </ul>
+      </div>
     `
   }
 };
@@ -458,8 +492,21 @@ class UIController {
     }
 
     if (this.dom.turnActionHint) {
+      const isRollingForPartner = this.game.teamMode && player.tokensFinished === this.game.tokensPerPlayer;
+      const partner = this.game.getPartner(player);
+
       if (player.isBot) {
         this.dom.turnActionHint.textContent = `${player.name} (${t.botThinking})`;
+      } else if (isRollingForPartner && partner) {
+        if (this.game.turnState === 'WAITING_FOR_ROLL') {
+          this.dom.turnActionHint.textContent = this.lang === 'hi'
+            ? `🤝 ${partner.name} की मदद के लिए पासा फेंकें!`
+            : `🤝 Roll to assist partner (${partner.name})!`;
+        } else if (this.game.turnState === 'WAITING_FOR_MOVE') {
+          this.dom.turnActionHint.textContent = this.lang === 'hi'
+            ? `🤝 ${partner.name} की गोटी चुनें!`
+            : `🤝 Select partner (${partner.name}) goti!`;
+        }
       } else if (this.game.turnState === 'WAITING_FOR_ROLL') {
         this.dom.turnActionHint.textContent = this.lang === 'hi' ? '🎲 पासा दबाएं' : '🎲 Tap to Roll';
       } else if (this.game.turnState === 'WAITING_FOR_MOVE') {
@@ -488,7 +535,7 @@ class UIController {
       const bestMove = LudoAI.chooseBestMove(this.game, currentP, this.game.validMoves);
       if (bestMove) {
         window.soundEngine.playTokenStep();
-        this.game.moveToken(bestMove.tokenId);
+        this.game.moveToken(bestMove.tokenId, bestMove.targetPlayerId);
         return;
       }
     }
@@ -562,7 +609,7 @@ class UIController {
               const bestMove = LudoAI.chooseBestMove(this.game, player, this.game.validMoves);
               if (bestMove) {
                 window.soundEngine.playTokenStep();
-                this.game.moveToken(bestMove.tokenId);
+                this.game.moveToken(bestMove.tokenId, bestMove.targetPlayerId);
               }
             }, 600);
           }
@@ -582,10 +629,65 @@ class UIController {
     }, 2800);
   }
 
-  showGameOverModal(rankings) {
+  showGameOverModal(result) {
     if (!this.dom.winPodiumList) return;
     this.dom.winPodiumList.innerHTML = '';
 
+    if (result && result.teamMode) {
+      const isTeamA = result.winningTeam === 'A';
+      const teamWinners = this.game.players.filter((p) => p.teamId === result.winningTeam);
+      const teamLosers = this.game.players.filter((p) => p.teamId !== result.winningTeam);
+
+      const titleEl = document.getElementById('win-title');
+      if (titleEl) {
+        titleEl.textContent = this.lang === 'hi'
+          ? `🏆 ${isTeamA ? 'टीम 1 (ब्लू + ग्रीन)' : 'टीम 2 (रेड + यलो)'} विजयी!`
+          : `🏆 ${isTeamA ? 'Team 1 (Blue + Green)' : 'Team 2 (Red + Yellow)'} Wins!`;
+      }
+
+      const teamHeader = document.createElement('div');
+      teamHeader.className = 'podium-item';
+      teamHeader.style.background = isTeamA
+        ? 'linear-gradient(135deg, rgba(0, 114, 188, 0.4), rgba(0, 166, 81, 0.4))'
+        : 'linear-gradient(135deg, rgba(229, 37, 33, 0.4), rgba(253, 184, 19, 0.4))';
+      teamHeader.style.border = '2px solid #fbbf24';
+      teamHeader.innerHTML = `
+        <span class="podium-rank">🏆</span>
+        <span class="podium-name" style="font-weight: 900; color: #fbbf24; font-size: 1.05rem;">
+          ${isTeamA ? 'Team 1: ब्लू (Blue) + ग्रीन (Green)' : 'Team 2: रेड (Red) + यलो (Yellow)'} - कुल 8 गोटियां होम!
+        </span>
+      `;
+      this.dom.winPodiumList.appendChild(teamHeader);
+
+      teamWinners.forEach((p) => {
+        const item = document.createElement('div');
+        item.className = 'podium-item';
+        item.innerHTML = `
+          <span class="podium-rank">🥇</span>
+          <span class="podium-color" style="background: ${p.config.hex};"></span>
+          <span class="podium-name">${p.name} (होम: ${p.tokensFinished}/${this.game.tokensPerPlayer})</span>
+          <span class="podium-kills">⚔️ ${p.killsCount}</span>
+        `;
+        this.dom.winPodiumList.appendChild(item);
+      });
+
+      teamLosers.forEach((p) => {
+        const item = document.createElement('div');
+        item.className = 'podium-item';
+        item.innerHTML = `
+          <span class="podium-rank">🥈</span>
+          <span class="podium-color" style="background: ${p.config.hex};"></span>
+          <span class="podium-name">${p.name} (होम: ${p.tokensFinished}/${this.game.tokensPerPlayer})</span>
+          <span class="podium-kills">⚔️ ${p.killsCount}</span>
+        `;
+        this.dom.winPodiumList.appendChild(item);
+      });
+
+      this.dom.winDialog.showModal();
+      return;
+    }
+
+    const rankings = Array.isArray(result) ? result : (result?.rankings || []);
     rankings.forEach((p, idx) => {
       const medals = ['🥇', '🥈', '🥉', '4th', '5th', '6th'];
       const item = document.createElement('div');

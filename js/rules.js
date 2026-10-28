@@ -69,13 +69,13 @@ class LudoGame {
       const colorMeta = this.boardConfig.colors[colorKey];
 
       // Team Assignment in 4-Player Team Mode
-      // Blue (P1) + Green (P3) = Team A
-      // Red (P2) + Yellow (P4) = Team B
+      // Blue (P1) + Green (P3) = Team 1 (A)
+      // Red (P2) + Yellow (P4) = Team 2 (B)
       let teamId = null;
       let teamName = null;
       if (this.teamMode) {
         teamId = (idx === 0 || idx === 2) ? 'A' : 'B';
-        teamName = teamId === 'A' ? 'Team A (Blue + Green)' : 'Team B (Red + Yellow)';
+        teamName = teamId === 'A' ? 'Team 1 (Blue + Green)' : 'Team 2 (Red + Yellow)';
       }
 
       const player = {
@@ -117,6 +117,23 @@ class LudoGame {
 
   getCurrentPlayer() {
     return this.players[this.currentPlayerIndex];
+  }
+
+  // Get teammate in 2v2 Team Mode (Blue + Green, Red + Yellow)
+  getPartner(player) {
+    if (!this.teamMode || !player) return null;
+    return this.players.find((p) => p.teamId === player.teamId && p.id !== player.id) || null;
+  }
+
+  // Check if a player has finished their involvement
+  // In solo mode: finished when own tokens are all in home.
+  // In team mode: finished only when BOTH player AND partner have finished all 8 tokens!
+  isPlayerFinished(player) {
+    if (this.teamMode) {
+      const partner = this.getPartner(player);
+      return player.tokensFinished === this.tokensPerPlayer && (!partner || partner.tokensFinished === this.tokensPerPlayer);
+    }
+    return player.tokensFinished === this.tokensPerPlayer;
   }
 
   // Roll dice
@@ -182,12 +199,26 @@ class LudoGame {
   }
 
   // Calculate all valid moves
+  // In Team Mode, if current player has finished all tokens, roll for partner!
   calculateValidMoves(player, roll) {
+    let targetPlayer = player;
+    let isRollingForPartner = false;
+
+    if (this.teamMode && player.tokensFinished === this.tokensPerPlayer) {
+      const partner = this.getPartner(player);
+      if (partner && partner.tokensFinished < this.tokensPerPlayer) {
+        targetPlayer = partner;
+        isRollingForPartner = true;
+      } else {
+        return [];
+      }
+    }
+
     const valid = [];
     const N = this.totalTrackTiles; // 52
-    const canEnterHome = this.hasKillPermission(player);
+    const canEnterHome = this.hasKillPermission(targetPlayer);
 
-    player.tokens.forEach((token) => {
+    targetPlayer.tokens.forEach((token) => {
       if (token.state === 'FINISHED') return;
 
       // 1. BASE: Only opens on rolling 6!
@@ -195,10 +226,13 @@ class LudoGame {
         if (roll === 6) {
           valid.push({
             tokenId: token.id,
+            targetPlayerId: targetPlayer.id,
+            controllingPlayerId: player.id,
+            isPartnerMove: isRollingForPartner,
             action: 'EXIT_BASE',
             destination: {
               state: 'TRACK',
-              trackIndex: player.config.startIndex,
+              trackIndex: targetPlayer.config.startIndex,
               stepsTraveled: 0
             }
           });
@@ -208,7 +242,7 @@ class LudoGame {
 
       // 2. TRACK: Moving on outer circuit
       if (token.state === 'TRACK') {
-        const turnIndex = player.config.turnIndex;
+        const turnIndex = targetPlayer.config.turnIndex;
         const circuitLength = N - 1; // 51 steps from start to turn entrance
         const stepsLeftToEntrance = circuitLength - token.stepsTraveled;
 
@@ -220,6 +254,9 @@ class LudoGame {
             const nextTrackIndex = (token.trackIndex + roll) % N;
             valid.push({
               tokenId: token.id,
+              targetPlayerId: targetPlayer.id,
+              controllingPlayerId: player.id,
+              isPartnerMove: isRollingForPartner,
               action: 'BYPASS_LOCKED_GATE',
               destination: {
                 state: 'TRACK',
@@ -233,6 +270,9 @@ class LudoGame {
             // "आपकी गोटी घर के मुहाने (Entrance) पर आकर रुक जाएगी। वह तब तक अंदर नहीं मुड़ेगी जब तक आप किसी अन्य गोटी से तोड़ न कर लें।"
             valid.push({
               tokenId: token.id,
+              targetPlayerId: targetPlayer.id,
+              controllingPlayerId: player.id,
+              isPartnerMove: isRollingForPartner,
               action: 'MOVE_TRACK',
               destination: {
                 state: 'TRACK',
@@ -246,6 +286,9 @@ class LudoGame {
             const nextTrackIndex = (token.trackIndex + roll) % N;
             valid.push({
               tokenId: token.id,
+              targetPlayerId: targetPlayer.id,
+              controllingPlayerId: player.id,
+              isPartnerMove: isRollingForPartner,
               action: 'MOVE_TRACK',
               destination: {
                 state: 'TRACK',
@@ -265,6 +308,9 @@ class LudoGame {
             // Land exactly on entrance tile
             valid.push({
               tokenId: token.id,
+              targetPlayerId: targetPlayer.id,
+              controllingPlayerId: player.id,
+              isPartnerMove: isRollingForPartner,
               action: 'MOVE_TRACK',
               destination: {
                 state: 'TRACK',
@@ -276,6 +322,9 @@ class LudoGame {
             // Inside colored Home Path (steps 1..5)
             valid.push({
               tokenId: token.id,
+              targetPlayerId: targetPlayer.id,
+              controllingPlayerId: player.id,
+              isPartnerMove: isRollingForPartner,
               action: 'ENTER_HOME_PATH',
               destination: {
                 state: 'HOME_PATH',
@@ -287,6 +336,9 @@ class LudoGame {
             // Exact roll to enter Center Home!
             valid.push({
               tokenId: token.id,
+              targetPlayerId: targetPlayer.id,
+              controllingPlayerId: player.id,
+              isPartnerMove: isRollingForPartner,
               action: 'ENTER_CENTER_HOME',
               destination: {
                 state: 'FINISHED',
@@ -301,6 +353,9 @@ class LudoGame {
           const nextTrackIndex = (token.trackIndex + roll) % N;
           valid.push({
             tokenId: token.id,
+            targetPlayerId: targetPlayer.id,
+            controllingPlayerId: player.id,
+            isPartnerMove: isRollingForPartner,
             action: 'MOVE_TRACK',
             destination: {
               state: 'TRACK',
@@ -318,6 +373,9 @@ class LudoGame {
         if (nextStep < this.homePathLength) {
           valid.push({
             tokenId: token.id,
+            targetPlayerId: targetPlayer.id,
+            controllingPlayerId: player.id,
+            isPartnerMove: isRollingForPartner,
             action: 'MOVE_HOME_PATH',
             destination: {
               state: 'HOME_PATH',
@@ -329,6 +387,9 @@ class LudoGame {
           // Exact roll to reach Center Home!
           valid.push({
             tokenId: token.id,
+            targetPlayerId: targetPlayer.id,
+            controllingPlayerId: player.id,
+            isPartnerMove: isRollingForPartner,
             action: 'ENTER_CENTER_HOME',
             destination: {
               state: 'FINISHED',
@@ -345,15 +406,18 @@ class LudoGame {
   }
 
   // Execute a move for chosen token
-  async moveToken(tokenId) {
+  async moveToken(tokenId, targetPlayerId = null) {
     if (this.turnState !== 'WAITING_FOR_MOVE') return false;
 
-    const move = this.validMoves.find((m) => m.tokenId === tokenId);
+    const move = this.validMoves.find((m) =>
+      m.tokenId === tokenId && (targetPlayerId === null || m.targetPlayerId === undefined || m.targetPlayerId === targetPlayerId)
+    );
     if (!move) return false;
 
     this.turnState = 'ANIMATING';
-    const player = this.getCurrentPlayer();
-    const token = player.tokens[tokenId];
+    const activePlayer = this.getCurrentPlayer();
+    const targetPlayer = move.targetPlayerId !== undefined ? this.players[move.targetPlayerId] : activePlayer;
+    const token = targetPlayer.tokens[tokenId];
     const prevPos = { ...token };
 
     // Apply destination
@@ -367,14 +431,14 @@ class LudoGame {
 
     // Check for capture / cut if on TRACK
     if (token.state === 'TRACK') {
-      const isSafe = this.boardConfig.safeTiles.includes(token.trackIndex);
+      const isSafe = (this.boardConfig.safeTiles || []).includes(token.trackIndex);
       if (!isSafe) {
         // Check if any opponent token is on this trackIndex
         for (const otherPlayer of this.players) {
-          if (otherPlayer.id === player.id) continue;
+          if (otherPlayer.id === targetPlayer.id) continue;
 
           // In Team Mode: Teammates NEVER cut each other!
-          if (this.teamMode && otherPlayer.teamId === player.teamId) {
+          if (this.teamMode && otherPlayer.teamId === targetPlayer.teamId) {
             continue;
           }
 
@@ -388,22 +452,26 @@ class LudoGame {
               opToken.homeStep = null;
 
               // Register Kill / Tod
-              player.killsCount++;
-              const firstKill = !player.hasKilledOpponent;
-              player.hasKilledOpponent = true;
+              activePlayer.killsCount++;
+              if (activePlayer.id !== targetPlayer.id) {
+                targetPlayer.killsCount++;
+              }
+              const firstKill = !activePlayer.hasKilledOpponent;
+              activePlayer.hasKilledOpponent = true;
+              targetPlayer.hasKilledOpponent = true;
               getsBonusRoll = true;
 
               // In Team Mode: Unlock gate for the whole team!
               if (this.teamMode) {
                 this.players
-                  .filter((p) => p.teamId === player.teamId)
+                  .filter((p) => p.teamId === activePlayer.teamId)
                   .forEach((p) => (p.hasKilledOpponent = true));
               }
 
-              this.onTokenKilled(player, opToken, otherPlayer);
+              this.onTokenKilled(activePlayer, opToken, otherPlayer);
 
               if (firstKill && this.killRequired) {
-                this.onHomeGateUnlocked(player);
+                this.onHomeGateUnlocked(activePlayer);
               }
               break; // cut one token
             }
@@ -415,13 +483,13 @@ class LudoGame {
 
     // Check if token FINISHED
     if (token.state === 'FINISHED') {
-      player.tokensFinished++;
+      targetPlayer.tokensFinished++;
       getsBonusRoll = true;
-      this.onTokenFinished(player, token);
+      this.onTokenFinished(targetPlayer, token);
 
-      if (player.tokensFinished === this.tokensPerPlayer) {
-        player.rank = this.winnerRankings.length + 1;
-        this.winnerRankings.push(player);
+      if (targetPlayer.tokensFinished === this.tokensPerPlayer && !this.teamMode) {
+        targetPlayer.rank = this.winnerRankings.length + 1;
+        this.winnerRankings.push(targetPlayer);
       }
     }
 
@@ -435,37 +503,41 @@ class LudoGame {
         this.gameOver = true;
         this.winningTeam = 'A';
         this.turnState = 'GAME_OVER';
-        await this.onTokenMoved(player, token, prevPos, move, victimToken);
-        this.onGameOver({ teamMode: true, winningTeam: 'A', teamName: 'Team A (Blue + Green)' });
+        await this.onTokenMoved(targetPlayer, token, prevPos, move, victimToken, activePlayer);
+        this.onGameOver({ teamMode: true, winningTeam: 'A', teamName: 'Team 1 (Blue + Green)' });
         return true;
       } else if (teamBTokens >= targetTeamTokens) {
         this.gameOver = true;
         this.winningTeam = 'B';
         this.turnState = 'GAME_OVER';
-        await this.onTokenMoved(player, token, prevPos, move, victimToken);
-        this.onGameOver({ teamMode: true, winningTeam: 'B', teamName: 'Team B (Red + Yellow)' });
+        await this.onTokenMoved(targetPlayer, token, prevPos, move, victimToken, activePlayer);
+        this.onGameOver({ teamMode: true, winningTeam: 'B', teamName: 'Team 2 (Red + Yellow)' });
         return true;
       }
     } else {
       if (this.winnerRankings.length >= this.players.length - 1) {
         this.gameOver = true;
         this.turnState = 'GAME_OVER';
-        await this.onTokenMoved(player, token, prevPos, move, victimToken);
+        await this.onTokenMoved(targetPlayer, token, prevPos, move, victimToken, activePlayer);
         this.onGameOver({ teamMode: false, rankings: this.winnerRankings });
         return true;
       }
     }
 
     // Broadcast move event with animation
-    await this.onTokenMoved(player, token, prevPos, move, victimToken);
+    await this.onTokenMoved(targetPlayer, token, prevPos, move, victimToken, activePlayer);
 
     // Turn transition: Bonus roll or Pass turn
     this.turnState = 'WAITING_FOR_ROLL';
 
     if (getsBonusRoll && !this.gameOver) {
-      if (player.tokensFinished < this.tokensPerPlayer) {
+      const canStillRoll = this.teamMode
+        ? !this.isPlayerFinished(activePlayer)
+        : activePlayer.tokensFinished < this.tokensPerPlayer;
+
+      if (canStillRoll) {
         const reason = this.currentRoll === 6 ? 'SIX' : (victimToken ? 'CAPTURE' : 'HOME');
-        this.onBonusRoll(player, reason);
+        this.onBonusRoll(activePlayer, reason);
         this.onStateChange();
         return true;
       }
@@ -487,8 +559,8 @@ class LudoGame {
     let nextIdx = (this.currentPlayerIndex + 1) % this.players.length;
     let loopGuard = 0;
 
-    // Skip players who have finished all their tokens
-    while (this.players[nextIdx].tokensFinished === this.tokensPerPlayer && loopGuard < this.players.length) {
+    // Skip players who have finished all their tokens (and partner if in team mode)
+    while (this.isPlayerFinished(this.players[nextIdx]) && loopGuard < this.players.length) {
       nextIdx = (nextIdx + 1) % this.players.length;
       loopGuard++;
     }

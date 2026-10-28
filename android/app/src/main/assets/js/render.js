@@ -387,13 +387,14 @@ class BoardRenderer {
     // Top-Left: Player 2 (Red) [Team B]
     // Top-Right: Player 3 (Green) [Team A]
     // Bottom-Left: Player 1 (Blue) [Team A]
-    // Bottom-Right: Player 4 (Yellow) [Team B]
+    // Bottom-Left: Player 1 (Blue) [Team 1]
+    // Bottom-Right: Player 4 (Yellow) [Team 2]
     const kothas = [
       {
         player: p1,
         key: 'blue',
         name: p1?.name || 'Player 1 (Blue)',
-        team: 'A',
+        team: '1',
         teamBg: '#38bdf8',
         teamColor: '#0369a1',
         x: 15,
@@ -412,7 +413,7 @@ class BoardRenderer {
         player: p4,
         key: 'yellow',
         name: p4?.name || 'Player 4 (Yellow)',
-        team: 'B',
+        team: '2',
         teamBg: '#eab308',
         teamColor: '#b45309',
         x: 595,
@@ -431,7 +432,7 @@ class BoardRenderer {
         player: p2,
         key: 'red',
         name: p2?.name || 'Player 2 (Red)',
-        team: 'B',
+        team: '2',
         teamBg: '#eab308',
         teamColor: '#b45309',
         x: 15,
@@ -450,7 +451,7 @@ class BoardRenderer {
         player: p3,
         key: 'green',
         name: p3?.name || 'Player 3 (Green)',
-        team: 'A',
+        team: '1',
         teamBg: '#38bdf8',
         teamColor: '#0369a1',
         x: 595,
@@ -498,10 +499,31 @@ class BoardRenderer {
 
       // Player Name & Turn / Team Info
       const textG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      let statusSubtitle = '';
+      const isRollingForPartner = this.game.teamMode && k.player?.tokensFinished === this.game.tokensPerPlayer;
+
+      if (isTurn) {
+        if (isRollingForPartner) {
+          statusSubtitle = this.game.turnState === 'WAITING_FOR_ROLL' ? '🤝 पार्टनर मदद (रोल करें)' : '🤝 पार्टनर की गोटी चुनें';
+        } else {
+          statusSubtitle = this.game.turnState === 'WAITING_FOR_ROLL' ? '🎲 पासा फेंकें' : '⏩ गोटी चुनें';
+        }
+      } else {
+        if (this.game.teamMode) {
+          if (k.player?.tokensFinished === this.game.tokensPerPlayer) {
+            statusSubtitle = '✅ 4/4 पूरी • सपोर्ट के लिए तैयार';
+          } else {
+            statusSubtitle = `टीम ${k.team} • पक्की: ${k.player?.tokensFinished || 0}/4`;
+          }
+        } else {
+          statusSubtitle = `पक्की: ${k.player?.tokensFinished || 0}/4`;
+        }
+      }
+
       textG.innerHTML = `
         <text x="${k.textX}" y="${k.textY}" font-size="16" font-weight="900" fill="#ffffff">${k.name}</text>
         <text x="${k.textX}" y="${k.textY + 22}" font-size="12" font-weight="700" fill="${isTurn ? '#fbbf24' : '#94a3b8'}">
-          ${isTurn ? (this.game.turnState === 'WAITING_FOR_ROLL' ? '🎲 पासा फेंकें' : '⏩ गोटी चुनें') : `टीम ${k.team} • पक्की: ${k.player?.tokensFinished || 0}/4`}
+          ${statusSubtitle}
         </text>
       `;
       g.appendChild(textG);
@@ -580,7 +602,11 @@ class BoardRenderer {
           badgeTxt.setAttribute('font-size', '11');
           badgeTxt.setAttribute('font-weight', '900');
           badgeTxt.setAttribute('fill', '#0f172a');
-          badgeTxt.textContent = this.game.turnState === 'WAITING_FOR_ROLL' ? '🎲 TAP' : '⏩ MOVE';
+          if (isRollingForPartner) {
+            badgeTxt.textContent = this.game.turnState === 'WAITING_FOR_ROLL' ? '🤝 ROLL' : '🤝 MOVE';
+          } else {
+            badgeTxt.textContent = this.game.turnState === 'WAITING_FOR_ROLL' ? '🎲 TAP' : '⏩ MOVE';
+          }
           badgeG.appendChild(badgeTxt);
 
           diceG.appendChild(badgeG);
@@ -1111,7 +1137,10 @@ class BoardRenderer {
           offsetY = Math.sin(angle) * 15;
         }
 
-        const isMovable = item.player.id === currentPlayer?.id && validTokenIds.includes(item.token.id);
+        const isMovable = isPlayerTurn && this.game.validMoves.some((m) =>
+          (m.targetPlayerId !== undefined ? m.targetPlayerId === item.player.id : item.player.id === currentPlayer.id) &&
+          m.tokenId === item.token.id
+        );
 
         this.renderSingleToken(
           tokenLayer,
@@ -1187,11 +1216,11 @@ class BoardRenderer {
         e.preventDefault();
         e.stopPropagation();
         if (window.soundEngine) window.soundEngine.playTokenStep();
-        this.game.moveToken(token.id);
+        this.game.moveToken(token.id, player.id);
       };
       g.addEventListener('touchstart', handleTap, { passive: false });
       g.addEventListener('click', handleTap);
-    } else if (token.state === 'BASE' && player.id === currentPlayer?.id) {
+    } else if (token.state === 'BASE' && (player.id === currentPlayer?.id || (this.game.teamMode && player.teamId === currentPlayer?.teamId))) {
       // Feedback when user tries to tap base token without rolling 6
       g.style.cursor = 'not-allowed';
       const handleBlockedTap = (e) => {
