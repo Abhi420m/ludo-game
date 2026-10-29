@@ -63,7 +63,7 @@
 
 /* Hopping Arc Jump Animation during Step-by-Step Movement */
 .pawn-hop-inner.jump-arc {
-  animation: hopArcJump 0.42s cubic-bezier(0.25, 1, 0.5, 1);
+  animation: hopArcJump 0.28s cubic-bezier(0.25, 1, 0.5, 1);
   transform-box: fill-box;
   transform-origin: center center;
 }
