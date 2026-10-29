@@ -15,7 +15,7 @@ const TRANSLATIONS = {
     btnStart: '🎮 खेल शुरू करें',
     btnRoll: 'पासा फेंकें',
     turnText: 'की बारी है',
-    gateLocked: '🔒 दरवाज़ा बंद (1 गोti काटना ज़रूरी)',
+    gateLocked: '🔒 दरवाज़ा बंद (1 गोटी काटना ज़रूरी)',
     gateOpen: '🔓 दरवाज़ा खुला (होम जा सकते हैं)',
     botThinking: 'सोच रहा है...',
     rolledSix: '🎲 6 आया! एक और मौका मिला!',
@@ -136,6 +136,7 @@ class UIController {
     this.wakeLock = null;
     this.isRolling = false;
     window.uiController = this;
+    window.ui = this;
 
     this.cacheDom();
     this.bindEvents();
@@ -605,7 +606,7 @@ class UIController {
       this.isRolling = false;
     } else {
       // No moves (rolled 1-5 without opened goti):
-      // Keep turnState as ANIMATING for 1.1s so player clearly sees the rolled number
+      // Keep turnState as ANIMATING for 750ms so player clearly sees the rolled number and message
       if (this.renderer) {
         this.renderer.renderBoard();
       }
@@ -613,7 +614,7 @@ class UIController {
         this.game.turnState = 'WAITING_FOR_ROLL';
         this.game.passTurn();
         this.isRolling = false;
-      }, 1100);
+      }, 750);
     }
   }
 

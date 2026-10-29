@@ -104,23 +104,25 @@
    PASS & PLAY CORNER DICE STYLES
 ---------------------------------------------------- */
 .corner-dice {
-  transform-box: fill-box;
-  transform-origin: center center;
-  transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  /* Container stays static at translated SVG coordinates */
 }
 
 .corner-dice.active-turn {
   cursor: pointer;
-  filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.85));
 }
 
-.corner-dice.rolling {
+.corner-dice-tumbler {
+  transform-box: fill-box;
+  transform-origin: center center;
+}
+
+.corner-dice-tumbler.rolling {
   animation: diceRealisticTumble 0.85s cubic-bezier(0.25, 0.8, 0.35, 1);
-  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.65)) drop-shadow(0 0 18px #f59e0b);
+  filter: drop-shadow(0 8px 22px rgba(0, 0, 0, 0.75)) drop-shadow(0 0 22px #f59e0b);
 }
 
-.corner-dice.roll-settled {
-  animation: diceSettleBounce 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+.corner-dice-tumbler.roll-settled {
+  animation: diceSettleBounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 @keyframes diceRealisticTumble {
@@ -134,7 +136,7 @@
 }
 
 @keyframes diceSettleBounce {
-  0% { transform: scale(1.35); }
+  0% { transform: scale(1.25); }
   50% { transform: scale(0.92); }
   100% { transform: scale(1); }
 }

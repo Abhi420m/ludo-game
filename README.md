@@ -105,5 +105,5 @@ ludo game/
 
 ## 📲 Android APK डाउनलोड करें (Direct APK Download)
 
-- 📥 **नवीनतम APK (v1.1.4 - Big 3D Dice, Big 3D Star Gotis, Zero Auto-Move & Auto Turn Pass):** [Super-Ludo-Pro.apk (v1.1.4)](https://github.com/Abhi420m/ludo-game/releases/download/v1.1.4/Super-Ludo-Pro.apk)
+- 📥 **नवीनतम APK (v1.1.5 - Fix Startup Rendering, 62px 3D Tumbling Dice, Perfect Corner Kotha Layout & Instant Turn Pass):** [Super-Ludo-Pro.apk (v1.1.5)](https://github.com/Abhi420m/ludo-game/releases/download/v1.1.5/Super-Ludo-Pro.apk)
 - 🌐 **लाइव खेलें (GitHub Pages):** [https://abhi420m.github.io/ludo-game/](https://abhi420m.github.io/ludo-game/)

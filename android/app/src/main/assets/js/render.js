@@ -373,10 +373,10 @@ class BoardRenderer {
   ---------------------------------------------------- */
   renderPlayerKothaBoxes(boardGroup, S) {
     if (this.game.boardType !== 4) return;
-    const currentPlayer = this.game.getCurrentPlayer();
-    if (!currentPlayer) return;
-
-    const activeKey = currentPlayer.colorKey;
+    const activePlayer = this.game.getCurrentPlayer();
+    if (!activePlayer) return;
+    const activeKey = activePlayer.colorKey;
+    const currentPlayer = activePlayer;
 
     const p1 = this.game.players.find((p) => p.colorKey === 'blue') || this.game.players[0];
     const p2 = this.game.players.find((p) => p.colorKey === 'red') || this.game.players[1];
@@ -384,97 +384,94 @@ class BoardRenderer {
     const p4 = this.game.players.find((p) => p.colorKey === 'yellow') || this.game.players[3];
 
     // 4 Box specifications placed cleanly outside the 1000x1000 board:
-    // Top-Left: Player 2 (Red) [Team B]
-    // Top-Right: Player 3 (Green) [Team A]
-    // Bottom-Left: Player 1 (Blue) [Team A]
-    // Bottom-Left: Player 1 (Blue) [Team 1]
-    // Bottom-Right: Player 4 (Yellow) [Team 2]
+    // Left side cards (Blue & Red): Goti left, Text middle, Tray right
+    // Right side cards (Yellow & Green): Tray left, Text middle, Goti right
+    // When NOT player's turn, tray is hidden to give maximum clean room for player info!
     const kothas = [
       {
         player: p1,
         key: 'blue',
-        name: p1?.name || 'Player 1 (Blue)',
+        name: p1?.name || 'खिलाड़ी 1 (Blue)',
         team: '1',
-        teamBg: '#38bdf8',
-        teamColor: '#0369a1',
         x: 15,
         y: 1025,
         width: 390,
         height: 98,
-        gotiX: 68,
+        gotiX: 52,
         gotiY: 1074,
-        textX: 115,
-        textY: 1062,
-        trayX: 285,
-        trayY: 1035,
-        side: 'bottom'
+        textX: 90,
+        textY: 1060,
+        trayX: 265,
+        trayY: 1031,
+        side: 'bottom',
+        isRightSide: false
       },
       {
         player: p4,
         key: 'yellow',
-        name: p4?.name || 'Player 4 (Yellow)',
+        name: p4?.name || 'खिलाड़ी 4 (Yellow)',
         team: '2',
-        teamBg: '#eab308',
-        teamColor: '#b45309',
         x: 595,
         y: 1025,
         width: 390,
         height: 98,
-        gotiX: 932,
+        gotiX: 948,
         gotiY: 1074,
-        textX: 715,
-        textY: 1062,
-        trayX: 615,
-        trayY: 1035,
-        side: 'bottom'
+        textX: 735,
+        textY: 1060,
+        inactiveTextX: 625,
+        trayX: 605,
+        trayY: 1031,
+        side: 'bottom',
+        isRightSide: true
       },
       {
         player: p2,
         key: 'red',
-        name: p2?.name || 'Player 2 (Red)',
+        name: p2?.name || 'खिलाड़ी 2 (Red)',
         team: '2',
-        teamBg: '#eab308',
-        teamColor: '#b45309',
         x: 15,
         y: -115,
         width: 390,
         height: 98,
-        gotiX: 68,
+        gotiX: 52,
         gotiY: -66,
-        textX: 115,
-        textY: -76,
-        trayX: 285,
-        trayY: -105,
-        side: 'top'
+        textX: 90,
+        textY: -80,
+        trayX: 265,
+        trayY: -109,
+        side: 'top',
+        isRightSide: false
       },
       {
         player: p3,
         key: 'green',
-        name: p3?.name || 'Player 3 (Green)',
+        name: p3?.name || 'खिलाड़ी 3 (Green)',
         team: '1',
-        teamBg: '#38bdf8',
-        teamColor: '#0369a1',
         x: 595,
         y: -115,
         width: 390,
         height: 98,
-        gotiX: 932,
+        gotiX: 948,
         gotiY: -66,
-        textX: 715,
-        textY: -76,
-        trayX: 615,
-        trayY: -105,
-        side: 'top'
+        textX: 735,
+        textY: -80,
+        inactiveTextX: 625,
+        trayX: 605,
+        trayY: -109,
+        side: 'top',
+        isRightSide: true
       }
     ];
 
     kothas.forEach((k) => {
+      const player = k.player;
       const c = this.game.boardConfig.colors[k.key];
       const isTurn = activeKey === k.key;
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       g.setAttribute('class', `player-kotha-box ${isTurn ? 'kotha-active' : ''}`);
 
-      // Background Card
+      // Background Card with Active Gold Glow
       const card = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
       card.setAttribute('x', k.x);
       card.setAttribute('y', k.y);
@@ -489,7 +486,7 @@ class BoardRenderer {
 
       // Mini 3D Token Preview
       const miniGoti = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      miniGoti.setAttribute('transform', `translate(${k.gotiX}, ${k.gotiY}) scale(0.85)`);
+      miniGoti.setAttribute('transform', `translate(${k.gotiX}, ${k.gotiY}) scale(0.9)`);
       miniGoti.innerHTML = `
         <circle r="18" fill="url(#token-body-${k.key})" stroke="#ffffff" stroke-width="1.8" filter="url(#shadow)"/>
         <circle r="11" fill="url(#token-head-${k.key})"/>
@@ -504,9 +501,17 @@ class BoardRenderer {
 
       if (isTurn) {
         if (isRollingForPartner) {
-          statusSubtitle = this.game.turnState === 'WAITING_FOR_ROLL' ? '🤝 पार्टनर मदद (रोल करें)' : '🤝 पार्टनर की गोटी चुनें';
+          statusSubtitle = this.game.turnState === 'WAITING_FOR_ROLL' ? '🤝 पार्टनर मदद (पासा फेंकें)' : '🤝 पार्टनर की गोटी चुनें';
         } else {
-          statusSubtitle = this.game.turnState === 'WAITING_FOR_ROLL' ? '🎲 पासा फेंकें' : '⏩ गोटी चुनें';
+          if (this.game.turnState === 'WAITING_FOR_ROLL') {
+            statusSubtitle = '🎲 पासा फेंकें (टैप करें)';
+          } else if (this.game.turnState === 'WAITING_FOR_MOVE') {
+            statusSubtitle = '👉 गोटी चुनें (टैप करें)';
+          } else if (this.game.turnState === 'ANIMATING' && (!this.game.validMoves || this.game.validMoves.length === 0)) {
+            statusSubtitle = '❌ कोई चाल नहीं • अगली बारी...';
+          } else {
+            statusSubtitle = '🎲 रोल हो रहा है...';
+          }
         }
       } else {
         if (this.game.teamMode) {
@@ -520,72 +525,93 @@ class BoardRenderer {
         }
       }
 
+      // Compute clean text anchor x coordinate
+      const currentTextX = (!isTurn && k.isRightSide && k.inactiveTextX) ? k.inactiveTextX : k.textX;
+
       textG.innerHTML = `
-        <text x="${k.textX}" y="${k.textY}" font-size="16" font-weight="900" fill="#ffffff">${k.name}</text>
-        <text x="${k.textX}" y="${k.textY + 22}" font-size="12" font-weight="700" fill="${isTurn ? '#fbbf24' : '#94a3b8'}">
+        <text x="${currentTextX}" y="${k.textY}" font-size="16" font-weight="900" fill="#ffffff">${k.name}</text>
+        <text x="${currentTextX}" y="${k.textY + 22}" font-size="12" font-weight="700" fill="${isTurn ? '#fbbf24' : '#94a3b8'}">
           ${statusSubtitle}
         </text>
       `;
       g.appendChild(textG);
 
-      // Die Tray (Enlarged)
-      const tray = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      tray.setAttribute('x', k.trayX);
-      tray.setAttribute('y', k.trayY);
-      tray.setAttribute('width', '104');
-      tray.setAttribute('height', '84');
-      tray.setAttribute('rx', '14');
-      tray.setAttribute('fill', isTurn ? '#ffffff' : '#1e293b');
-      tray.setAttribute('stroke', isTurn ? c.hex : '#334155');
-      tray.setAttribute('stroke-width', '2.5');
-      g.appendChild(tray);
-
-      // Die Tray Center
-      const diceCenterX = k.trayX + 52;
-      const diceCenterY = k.trayY + 42;
-
+      // Die Tray & 3D Dice: Render ONLY when it's this player's turn!
+      // Directly satisfies user requirement: "kota jiski chance hai auski hi taraf show kare"
       if (isTurn) {
+        const trayWidth = 118;
+        const trayHeight = 86;
+        const tray = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        tray.setAttribute('x', k.trayX);
+        tray.setAttribute('y', k.trayY);
+        tray.setAttribute('width', `${trayWidth}`);
+        tray.setAttribute('height', `${trayHeight}`);
+        tray.setAttribute('rx', '16');
+        tray.setAttribute('fill', '#ffffff');
+        tray.setAttribute('stroke', c.hex);
+        tray.setAttribute('stroke-width', '3');
+        tray.setAttribute('filter', 'url(#gold-glow)');
+        g.appendChild(tray);
+
+        const diceCenterX = k.trayX + (trayWidth / 2);
+        const diceCenterY = k.trayY + (trayHeight / 2);
         const diceVal = this.game.currentRoll || 6;
+
+        // Static outer dice group placed at (diceCenterX, diceCenterY)
         const diceG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         diceG.setAttribute('class', 'corner-dice active-turn');
-        diceG.setAttribute('id', `corner-dice-${player.id}`);
+        diceG.setAttribute('id', `corner-dice-${player ? player.id : k.key}`);
         diceG.setAttribute('transform', `translate(${diceCenterX}, ${diceCenterY})`);
+
+        // Inner Tumbler Group: Handles all scale and rotate in-place around 0,0
+        const tumblerG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        tumblerG.setAttribute('class', 'corner-dice-tumbler');
 
         // Pulsing active aura
         const aura = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         aura.setAttribute('class', 'dice-aura');
-        aura.setAttribute('x', '-33');
-        aura.setAttribute('y', '-33');
-        aura.setAttribute('width', '66');
-        aura.setAttribute('height', '66');
-        aura.setAttribute('rx', '16');
+        aura.setAttribute('x', '-38');
+        aura.setAttribute('y', '-38');
+        aura.setAttribute('width', '76');
+        aura.setAttribute('height', '76');
+        aura.setAttribute('rx', '18');
         aura.setAttribute('fill', c.hex);
         aura.setAttribute('opacity', '0.45');
-        diceG.appendChild(aura);
+        tumblerG.appendChild(aura);
 
-        // 3D White Die Box (Enlarged to 56x56)
+        // 3D White Die Box (Enlarged to 62x62)
         const dieBox = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        dieBox.setAttribute('x', '-28');
-        dieBox.setAttribute('y', '-28');
-        dieBox.setAttribute('width', '56');
-        dieBox.setAttribute('height', '56');
-        dieBox.setAttribute('rx', '13');
+        dieBox.setAttribute('class', 'die-box-rect');
+        dieBox.setAttribute('x', '-31');
+        dieBox.setAttribute('y', '-31');
+        dieBox.setAttribute('width', '62');
+        dieBox.setAttribute('height', '62');
+        dieBox.setAttribute('rx', '15');
         dieBox.setAttribute('fill', '#ffffff');
         dieBox.setAttribute('stroke', c.hex);
-        dieBox.setAttribute('stroke-width', '3.2');
+        dieBox.setAttribute('stroke-width', '3.5');
         dieBox.setAttribute('filter', 'url(#pawn-shadow)');
-        diceG.appendChild(dieBox);
+        tumblerG.appendChild(dieBox);
+
+        // Specular highlight gloss
+        const dieGloss = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        dieGloss.setAttribute('d', 'M -25 -22 L 25 -22');
+        dieGloss.setAttribute('stroke', '#ffffff');
+        dieGloss.setAttribute('stroke-width', '2.2');
+        dieGloss.setAttribute('stroke-linecap', 'round');
+        dieGloss.setAttribute('opacity', '0.9');
+        tumblerG.appendChild(dieGloss);
 
         // Dedicated Pips Group (animated dynamically during roll!)
         const pipsGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
         pipsGroup.setAttribute('class', 'dice-pips-group');
-        this.drawDicePips(pipsGroup, diceVal, 56);
-        diceG.appendChild(pipsGroup);
+        this.drawDicePips(pipsGroup, diceVal, 62);
+        tumblerG.appendChild(pipsGroup);
 
         // "TAP" floating badge
         if (this.game.turnState === 'WAITING_FOR_ROLL' || this.game.turnState === 'WAITING_FOR_MOVE') {
           const badgeG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-          const badgeOffsetY = k.side === 'bottom' ? -38 : 38;
+          const badgeOffsetY = k.side === 'bottom' ? -40 : 40;
           badgeG.setAttribute('transform', `translate(0, ${badgeOffsetY})`);
           badgeG.setAttribute('class', 'dice-tap-badge');
 
@@ -616,13 +642,15 @@ class BoardRenderer {
           diceG.appendChild(badgeG);
         }
 
+        diceG.appendChild(tumblerG);
+
         // Tap Handler to roll directly from their box!
         if (!currentPlayer.isBot) {
           g.style.cursor = 'pointer';
           let lastTap = 0;
           const handleKothaTap = (e) => {
             const now = Date.now();
-            if (now - lastTap < 600) return;
+            if (now - lastTap < 500) return;
             lastTap = now;
 
             e.preventDefault();
@@ -634,7 +662,7 @@ class BoardRenderer {
 
           g.addEventListener('touchstart', handleKothaTap, { passive: false });
           g.addEventListener('click', (e) => {
-            if (Date.now() - lastTap < 600) {
+            if (Date.now() - lastTap < 500) {
               e.preventDefault();
               e.stopPropagation();
               return;
@@ -644,60 +672,10 @@ class BoardRenderer {
         }
 
         g.appendChild(diceG);
-      } else {
-        // Inactive player: show small waiting die
-        const miniDiceG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        miniDiceG.setAttribute('transform', `translate(${diceCenterX}, ${diceCenterY}) opacity(0.6)`);
-        const miniBox = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-        miniBox.setAttribute('x', '-16');
-        miniBox.setAttribute('y', '-16');
-        miniBox.setAttribute('width', '32');
-        miniBox.setAttribute('height', '32');
-        miniBox.setAttribute('rx', '8');
-        miniBox.setAttribute('fill', '#334155');
-        miniBox.setAttribute('stroke', '#64748b');
-        miniBox.setAttribute('stroke-width', '1.5');
-        miniDiceG.appendChild(miniBox);
-        g.appendChild(miniDiceG);
       }
 
       boardGroup.appendChild(g);
     });
-
-    // 3D Directional Orange Pointer Arrow between boxes (pointing to active player!)
-    if (activeKey === 'red') {
-      const arr = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-      arr.setAttribute('points', '525,-66 475,-66 493,-80 475,-66 493,-52');
-      arr.setAttribute('fill', '#f97316');
-      arr.setAttribute('stroke', '#ffffff');
-      arr.setAttribute('stroke-width', '2.5');
-      arr.setAttribute('filter', 'url(#shadow)');
-      boardGroup.appendChild(arr);
-    } else if (activeKey === 'green') {
-      const arr = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-      arr.setAttribute('points', '475,-66 525,-66 507,-80 525,-66 507,-52');
-      arr.setAttribute('fill', '#f97316');
-      arr.setAttribute('stroke', '#ffffff');
-      arr.setAttribute('stroke-width', '2.5');
-      arr.setAttribute('filter', 'url(#shadow)');
-      boardGroup.appendChild(arr);
-    } else if (activeKey === 'blue') {
-      const arr = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-      arr.setAttribute('points', '525,1074 475,1074 493,1060 475,1074 493,1088');
-      arr.setAttribute('fill', '#f97316');
-      arr.setAttribute('stroke', '#ffffff');
-      arr.setAttribute('stroke-width', '2.5');
-      arr.setAttribute('filter', 'url(#shadow)');
-      boardGroup.appendChild(arr);
-    } else if (activeKey === 'yellow') {
-      const arr = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-      arr.setAttribute('points', '475,1074 525,1074 507,1060 525,1074 507,1088');
-      arr.setAttribute('fill', '#f97316');
-      arr.setAttribute('stroke', '#ffffff');
-      arr.setAttribute('stroke-width', '2.5');
-      arr.setAttribute('filter', 'url(#shadow)');
-      boardGroup.appendChild(arr);
-    }
   }
 
   /* ----------------------------------------------------
@@ -932,12 +910,13 @@ class BoardRenderer {
   }
 
   // User requested: "dice pe roll hote bich me dice me dikna chaye... itna slow karo ki dikh jaye"
-  // Dynamic 850ms tumbling animation showing the dots inside the die face cycling visibly!
+  // Dynamic 850ms tumbling animation showing the dots inside the die face cycling visibly in place!
   async animateDiceRollVisual(cornerDiceEl, finalVal, duration = 850) {
     if (!cornerDiceEl) return;
+    const tumbler = cornerDiceEl.querySelector('.corner-dice-tumbler') || cornerDiceEl;
     const pipsGroup = cornerDiceEl.querySelector('.dice-pips-group');
-    cornerDiceEl.classList.remove('roll-settled');
-    cornerDiceEl.classList.add('rolling');
+    tumbler.classList.remove('roll-settled');
+    tumbler.classList.add('rolling');
 
     const startTime = Date.now();
     let lastRollFace = 1;
@@ -974,20 +953,20 @@ class BoardRenderer {
           while (pipsGroup.firstChild) {
             pipsGroup.removeChild(pipsGroup.firstChild);
           }
-          this.drawDicePips(pipsGroup, nextFace, 56);
+          this.drawDicePips(pipsGroup, nextFace, 62);
         }
       }, 75);
     });
 
-    cornerDiceEl.classList.remove('rolling');
-    cornerDiceEl.classList.add('roll-settled');
-    setTimeout(() => cornerDiceEl.classList.remove('roll-settled'), 450);
+    tumbler.classList.remove('rolling');
+    tumbler.classList.add('roll-settled');
+    setTimeout(() => tumbler.classList.remove('roll-settled'), 400);
 
     if (pipsGroup) {
       while (pipsGroup.firstChild) {
         pipsGroup.removeChild(pipsGroup.firstChild);
       }
-      this.drawDicePips(pipsGroup, finalVal, 56);
+      this.drawDicePips(pipsGroup, finalVal, 62);
     }
   }
 
