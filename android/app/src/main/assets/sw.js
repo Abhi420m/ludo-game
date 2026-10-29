@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ludo-pro-v116';
+const CACHE_NAME = 'ludo-pro-v117';
 const ASSETS_TO_CACHE = [
   './',
   'index.html',

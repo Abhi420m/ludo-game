@@ -1051,9 +1051,9 @@ class BoardRenderer {
       return;
     }
 
-    // User requested: "goti chalne ki speed bus halki se taz kar do bus"
-    const hopStepTime = 280; // ms per tile step (smooth, slightly faster responsive leap)
-    const stepPause = 40;    // brief pause on landing for crisp observation
+    // User requested: "goti chalne ki speed fast karo halka sa"
+    const hopStepTime = 185; // ms per tile step (crisp, snappy physical leap like Ludo King)
+    const stepPause = 20;    // brief pause on landing for crisp observation
     const pawnScale = this.game.boardType === 4 ? 1.36 : 1.08;
     const c = player.config;
     const colorKey = player.colorKey;
