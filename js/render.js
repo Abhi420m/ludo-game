@@ -19,13 +19,12 @@ class BoardRenderer {
     this.game = null;
     this.particles = [];
     this.animatingToken = null;
+    this.isLoopRunning = false;
 
     if (this.canvas) {
       this.resizeCanvas();
       window.addEventListener('resize', () => this.resizeCanvas());
     }
-
-    this.startParticleLoop();
   }
 
   resizeCanvas() {
@@ -1378,82 +1377,98 @@ class BoardRenderer {
   /* ----------------------------------------------------
      PARTICLE & CONFETTI ENGINE
   ---------------------------------------------------- */
-  spawnConfetti(count = 70) {
+  spawnConfetti(count = 50) {
     if (!this.canvas) return;
     const colors = ['#0072bc', '#e52521', '#00a651', '#fdb813', '#9333ea', '#ffffff'];
     for (let i = 0; i < count; i++) {
       this.particles.push({
         x: this.canvas.width / 2,
         y: this.canvas.height / 2,
-        vx: (Math.random() - 0.5) * 16,
-        vy: (Math.random() - 0.8) * 18,
-        size: Math.random() * 8 + 4,
+        vx: (Math.random() - 0.5) * 14,
+        vy: (Math.random() - 0.8) * 16,
+        size: Math.random() * 7 + 4,
         color: colors[Math.floor(Math.random() * colors.length)],
         rotation: Math.random() * 360,
         vr: (Math.random() - 0.5) * 15,
         life: 1.0,
-        decay: Math.random() * 0.015 + 0.01
+        decay: Math.random() * 0.02 + 0.012
       });
     }
+    this.startParticleLoop();
   }
 
-  // Spectacular Victory Celebration: 6 continuous waves of fireworks and confetti
+  // Spectacular Victory Celebration: 4 waves of fireworks and confetti
   spawnVictoryCelebration() {
     if (!this.canvas) return;
     const colors = ['#fbbf24', '#f59e0b', '#3b82f6', '#ef4444', '#10b981', '#ec4899', '#8b5cf6', '#ffffff'];
-    for (let wave = 0; wave < 6; wave++) {
+    for (let wave = 0; wave < 4; wave++) {
       setTimeout(() => {
         if (!this.canvas) return;
-        const originX = (0.15 + Math.random() * 0.7) * this.canvas.width;
-        const originY = (0.2 + Math.random() * 0.4) * this.canvas.height;
-        for (let i = 0; i < 65; i++) {
+        const originX = (0.2 + Math.random() * 0.6) * this.canvas.width;
+        const originY = (0.25 + Math.random() * 0.35) * this.canvas.height;
+        for (let i = 0; i < 35; i++) {
           const angle = Math.random() * Math.PI * 2;
-          const speed = Math.random() * 16 + 5;
+          const speed = Math.random() * 14 + 4;
           this.particles.push({
             x: originX,
             y: originY,
             vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed - 4,
-            size: Math.random() * 9 + 4,
+            vy: Math.sin(angle) * speed - 3,
+            size: Math.random() * 8 + 4,
             color: colors[Math.floor(Math.random() * colors.length)],
             rotation: Math.random() * 360,
-            vr: (Math.random() - 0.5) * 18,
+            vr: (Math.random() - 0.5) * 16,
             life: 1.0,
-            decay: Math.random() * 0.012 + 0.007
+            decay: Math.random() * 0.015 + 0.01
           });
         }
-      }, wave * 420);
+        this.startParticleLoop();
+      }, wave * 400);
     }
   }
 
   startParticleLoop() {
+    if (this.isLoopRunning) return;
+    this.isLoopRunning = true;
+
     const loop = () => {
-      if (this.ctx && this.particles.length > 0) {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        for (let i = this.particles.length - 1; i >= 0; i--) {
-          const p = this.particles[i];
-          p.x += p.vx;
-          p.y += p.vy;
-          p.vy += 0.45;
-          p.rotation += p.vr;
-          p.life -= p.decay;
-
-          if (p.life <= 0) {
-            this.particles.splice(i, 1);
-            continue;
-          }
-
-          this.ctx.save();
-          this.ctx.globalAlpha = p.life;
-          this.ctx.translate(p.x, p.y);
-          this.ctx.rotate((p.rotation * Math.PI) / 180);
-          this.ctx.fillStyle = p.color;
-          this.ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
-          this.ctx.restore();
-        }
+      if (!this.ctx || !this.canvas) {
+        this.isLoopRunning = false;
+        return;
       }
+
+      if (this.particles.length === 0) {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.isLoopRunning = false;
+        return;
+      }
+
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      for (let i = this.particles.length - 1; i >= 0; i--) {
+        const p = this.particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.45;
+        p.rotation += p.vr;
+        p.life -= p.decay;
+
+        if (p.life <= 0) {
+          this.particles.splice(i, 1);
+          continue;
+        }
+
+        this.ctx.save();
+        this.ctx.globalAlpha = Math.max(0, p.life);
+        this.ctx.translate(p.x, p.y);
+        this.ctx.rotate((p.rotation * Math.PI) / 180);
+        this.ctx.fillStyle = p.color;
+        this.ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+        this.ctx.restore();
+      }
+
       requestAnimationFrame(loop);
     };
+
     requestAnimationFrame(loop);
   }
 }

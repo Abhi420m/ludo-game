@@ -602,25 +602,25 @@ class UIController {
     this.updateDiceFace(res.value);
 
     if (res.validMoves && res.validMoves.length > 0) {
+      this.game.turnState = 'WAITING_FOR_MOVE';
+      if (this.renderer) {
+        this.renderer.renderBoard();
+      }
+
       if (res.validMoves.length === 1) {
         // User requested: "jb ek goti hi open ho to automatic chalni chaye vo"
-        // Single valid move: Automatically move it after a brief 350ms roll recognition pause!
-        this.game.turnState = 'ANIMATING';
-        if (this.renderer) {
-          this.renderer.renderBoard();
-        }
-        setTimeout(() => {
+        // Single valid move: Automatically move it after a brief 380ms roll recognition pause!
+        setTimeout(async () => {
+          if (!this.game || this.game.turnState !== 'WAITING_FOR_MOVE') {
+            this.isRolling = false;
+            return;
+          }
           const move = res.validMoves[0];
           if (window.soundEngine) window.soundEngine.playTokenStep();
-          this.game.moveToken(move.tokenId, move.targetPlayerId);
+          await this.game.moveToken(move.tokenId, move.targetPlayerId);
           this.isRolling = false;
-        }, 350);
+        }, 380);
       } else {
-        // Multiple valid moves: Player chooses by tapping their desired token
-        this.game.turnState = 'WAITING_FOR_MOVE';
-        if (this.renderer) {
-          this.renderer.renderBoard();
-        }
         this.isRolling = false;
       }
     } else {

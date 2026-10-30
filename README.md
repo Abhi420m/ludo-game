@@ -105,5 +105,5 @@ ludo game/
 
 ## 📲 Android APK डाउनलोड करें (Direct APK Download)
 
-- 📥 **Latest APK (v1.1.8 - Fix Home Entrance Circuit Calculation, Auto Single Goti Move, Epic Victory Celebration Fireworks & Full English Default UI):** [Super-Ludo-Pro.apk (v1.1.8)](https://github.com/Abhi420m/ludo-game/releases/download/v1.1.8/Super-Ludo-Pro.apk)
+- 📥 **Latest APK (v1.1.9 - Fix Game Freeze on Auto Single Move, Optimize Particle Engine & Prevent Android Crash):** [Super-Ludo-Pro.apk (v1.1.9)](https://github.com/Abhi420m/ludo-game/releases/download/v1.1.9/Super-Ludo-Pro.apk)
 - 🌐 **लाइव खेलें (GitHub Pages):** [https://abhi420m.github.io/ludo-game/](https://abhi420m.github.io/ludo-game/)

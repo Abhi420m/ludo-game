@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.ConsoleMessage;
+import android.webkit.RenderProcessGoneDetail;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -27,6 +28,10 @@ public class MainActivity extends Activity {
         );
 
         setContentView(R.layout.activity_main);
+        initWebView();
+    }
+
+    private void initWebView() {
         webView = findViewById(R.id.webview);
 
         WebSettings settings = webView.getSettings();
@@ -58,6 +63,17 @@ public class MainActivity extends Activity {
                 if (url.startsWith("file:///android_asset/")) {
                     return false;
                 }
+                return true;
+            }
+
+            @Override
+            public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
+                // Prevent app from being terminated by Android OS if WebView renderer runs out of memory or resets
+                if (webView != null) {
+                    webView.destroy();
+                    webView = null;
+                }
+                recreate();
                 return true;
             }
         });
