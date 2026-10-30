@@ -17,10 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
     tokensPerPlayer: 4,
     killRequired: true,
     players: [
-      { name: 'खिलाड़ी 1 (Blue)', isBot: false },
-      { name: 'खिलाड़ी 2 (Red)', isBot: false },
-      { name: 'खिलाड़ी 3 (Green)', isBot: false },
-      { name: 'खिलाड़ी 4 (Yellow)', isBot: false }
+      { name: 'Player 1 (Blue)', isBot: false },
+      { name: 'Player 2 (Red)', isBot: false },
+      { name: 'Player 3 (Green)', isBot: false },
+      { name: 'Player 4 (Yellow)', isBot: false }
     ]
   });
 

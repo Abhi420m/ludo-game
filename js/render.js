@@ -383,6 +383,8 @@ class BoardRenderer {
     const p3 = this.game.players.find((p) => p.colorKey === 'green') || this.game.players[2];
     const p4 = this.game.players.find((p) => p.colorKey === 'yellow') || this.game.players[3];
 
+    const isEnglish = !window.uiController || window.uiController.lang === 'en';
+
     // 4 Box specifications placed cleanly outside the 1000x1000 board:
     // Left side cards (Blue & Red): Goti left, Text middle, Tray right
     // Right side cards (Yellow & Green): Tray left, Text middle, Goti right
@@ -391,7 +393,7 @@ class BoardRenderer {
       {
         player: p1,
         key: 'blue',
-        name: p1?.name || 'खिलाड़ी 1 (Blue)',
+        name: p1?.name || (isEnglish ? 'Player 1 (Blue)' : 'खिलाड़ी 1 (Blue)'),
         team: '1',
         x: 15,
         y: 1025,
@@ -409,7 +411,7 @@ class BoardRenderer {
       {
         player: p4,
         key: 'yellow',
-        name: p4?.name || 'खिलाड़ी 4 (Yellow)',
+        name: p4?.name || (isEnglish ? 'Player 4 (Yellow)' : 'खिलाड़ी 4 (Yellow)'),
         team: '2',
         x: 595,
         y: 1025,
@@ -428,7 +430,7 @@ class BoardRenderer {
       {
         player: p2,
         key: 'red',
-        name: p2?.name || 'खिलाड़ी 2 (Red)',
+        name: p2?.name || (isEnglish ? 'Player 2 (Red)' : 'खिलाड़ी 2 (Red)'),
         team: '2',
         x: 15,
         y: -115,
@@ -446,7 +448,7 @@ class BoardRenderer {
       {
         player: p3,
         key: 'green',
-        name: p3?.name || 'खिलाड़ी 3 (Green)',
+        name: p3?.name || (isEnglish ? 'Player 3 (Green)' : 'खिलाड़ी 3 (Green)'),
         team: '1',
         x: 595,
         y: -115,
@@ -501,27 +503,33 @@ class BoardRenderer {
 
       if (isTurn) {
         if (isRollingForPartner) {
-          statusSubtitle = this.game.turnState === 'WAITING_FOR_ROLL' ? '🤝 पार्टनर मदद (पासा फेंकें)' : '🤝 पार्टनर की गोटी चुनें';
+          statusSubtitle = isEnglish
+            ? (this.game.turnState === 'WAITING_FOR_ROLL' ? '🤝 Partner Support (Roll)' : '🤝 Choose Partner Token')
+            : (this.game.turnState === 'WAITING_FOR_ROLL' ? '🤝 पार्टनर मदद (पासा फेंकें)' : '🤝 पार्टनर की गोटी चुनें');
         } else {
           if (this.game.turnState === 'WAITING_FOR_ROLL') {
-            statusSubtitle = '🎲 पासा फेंकें (टैप करें)';
+            statusSubtitle = isEnglish ? '🎲 Roll Dice (Tap)' : '🎲 पासा फेंकें (टैप करें)';
           } else if (this.game.turnState === 'WAITING_FOR_MOVE') {
-            statusSubtitle = '👉 गोटी चुनें (टैप करें)';
+            statusSubtitle = isEnglish ? '👉 Tap Token to Move' : '👉 गोटी चुनें (टैप करें)';
           } else if (this.game.turnState === 'ANIMATING' && (!this.game.validMoves || this.game.validMoves.length === 0)) {
-            statusSubtitle = '❌ कोई चाल नहीं • अगली बारी...';
+            statusSubtitle = isEnglish ? '❌ No Valid Moves • Passing...' : '❌ कोई चाल नहीं • अगली बारी...';
           } else {
-            statusSubtitle = '🎲 रोल हो रहा है...';
+            statusSubtitle = isEnglish ? '🎲 Rolling...' : '🎲 रोल हो रहा है...';
           }
         }
       } else {
         if (this.game.teamMode) {
           if (k.player?.tokensFinished === this.game.tokensPerPlayer) {
-            statusSubtitle = '✅ 4/4 पूरी • सपोर्ट के लिए तैयार';
+            statusSubtitle = isEnglish ? '✅ 4/4 Home • Ready to Support' : '✅ 4/4 पूरी • सपोर्ट के लिए तैयार';
           } else {
-            statusSubtitle = `टीम ${k.team} • पक्की: ${k.player?.tokensFinished || 0}/4`;
+            statusSubtitle = isEnglish
+              ? `Team ${k.team} • Home: ${k.player?.tokensFinished || 0}/4`
+              : `टीम ${k.team} • पक्की: ${k.player?.tokensFinished || 0}/4`;
           }
         } else {
-          statusSubtitle = `पक्की: ${k.player?.tokensFinished || 0}/4`;
+          statusSubtitle = isEnglish
+            ? `Home: ${k.player?.tokensFinished || 0}/4`
+            : `पक्की: ${k.player?.tokensFinished || 0}/4`;
         }
       }
 
@@ -1386,6 +1394,35 @@ class BoardRenderer {
         life: 1.0,
         decay: Math.random() * 0.015 + 0.01
       });
+    }
+  }
+
+  // Spectacular Victory Celebration: 6 continuous waves of fireworks and confetti
+  spawnVictoryCelebration() {
+    if (!this.canvas) return;
+    const colors = ['#fbbf24', '#f59e0b', '#3b82f6', '#ef4444', '#10b981', '#ec4899', '#8b5cf6', '#ffffff'];
+    for (let wave = 0; wave < 6; wave++) {
+      setTimeout(() => {
+        if (!this.canvas) return;
+        const originX = (0.15 + Math.random() * 0.7) * this.canvas.width;
+        const originY = (0.2 + Math.random() * 0.4) * this.canvas.height;
+        for (let i = 0; i < 65; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = Math.random() * 16 + 5;
+          this.particles.push({
+            x: originX,
+            y: originY,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed - 4,
+            size: Math.random() * 9 + 4,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            rotation: Math.random() * 360,
+            vr: (Math.random() - 0.5) * 18,
+            life: 1.0,
+            decay: Math.random() * 0.012 + 0.007
+          });
+        }
+      }, wave * 420);
     }
   }
 

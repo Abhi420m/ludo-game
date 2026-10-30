@@ -239,7 +239,8 @@ class LudoGame {
       // 2. TRACK: Moving on outer circuit
       if (token.state === 'TRACK') {
         const turnIndex = targetPlayer.config.turnIndex;
-        const circuitLength = N - 1; // 51 steps from start to turn entrance
+        // Exact distance from player's starting tile to their home entrance tile (e.g. 50 steps on 4P board)
+        const circuitLength = (targetPlayer.config.turnIndex - targetPlayer.config.startIndex + N) % N;
         const stepsLeftToEntrance = circuitLength - token.stepsTraveled;
 
         // If player DOES NOT have kill permission ("बिना तोड़ के अंदर ना जाना"):

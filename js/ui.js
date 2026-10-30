@@ -130,7 +130,7 @@ function safeSetUiStorage(key, val) {
 
 class UIController {
   constructor() {
-    this.lang = safeGetUiStorage('ludo_lang', 'hi');
+    this.lang = safeGetUiStorage('ludo_lang', 'en');
     this.game = null;
     this.renderer = null;
     this.wakeLock = null;
@@ -468,7 +468,11 @@ class UIController {
       },
       onGameOver: (rankings) => {
         window.soundEngine.playGameWin();
-        this.renderer.spawnConfetti(120);
+        if (this.renderer && this.renderer.spawnVictoryCelebration) {
+          this.renderer.spawnVictoryCelebration();
+        } else if (this.renderer) {
+          this.renderer.spawnConfetti(150);
+        }
         this.vibrate([100, 60, 100, 60, 200]);
         this.showGameOverModal(rankings);
       },
@@ -598,12 +602,27 @@ class UIController {
     this.updateDiceFace(res.value);
 
     if (res.validMoves && res.validMoves.length > 0) {
-      // Player has movable tokens: wait for player to tap goti on board
-      this.game.turnState = 'WAITING_FOR_MOVE';
-      if (this.renderer) {
-        this.renderer.renderBoard();
+      if (res.validMoves.length === 1) {
+        // User requested: "jb ek goti hi open ho to automatic chalni chaye vo"
+        // Single valid move: Automatically move it after a brief 350ms roll recognition pause!
+        this.game.turnState = 'ANIMATING';
+        if (this.renderer) {
+          this.renderer.renderBoard();
+        }
+        setTimeout(() => {
+          const move = res.validMoves[0];
+          if (window.soundEngine) window.soundEngine.playTokenStep();
+          this.game.moveToken(move.tokenId, move.targetPlayerId);
+          this.isRolling = false;
+        }, 350);
+      } else {
+        // Multiple valid moves: Player chooses by tapping their desired token
+        this.game.turnState = 'WAITING_FOR_MOVE';
+        if (this.renderer) {
+          this.renderer.renderBoard();
+        }
+        this.isRolling = false;
       }
-      this.isRolling = false;
     } else {
       // No moves (rolled 1-5 without opened goti):
       // Keep turnState as ANIMATING for 750ms so player clearly sees the rolled number and message
@@ -700,6 +719,8 @@ class UIController {
     if (!this.dom.winPodiumList) return;
     this.dom.winPodiumList.innerHTML = '';
 
+    const isEnglish = this.lang === 'en';
+
     if (result && result.teamMode) {
       const isTeamA = result.winningTeam === 'A';
       const teamWinners = this.game.players.filter((p) => p.teamId === result.winningTeam);
@@ -707,21 +728,24 @@ class UIController {
 
       const titleEl = document.getElementById('win-title');
       if (titleEl) {
-        titleEl.textContent = this.lang === 'hi'
-          ? `🏆 ${isTeamA ? 'टीम 1 (ब्लू + ग्रीन)' : 'टीम 2 (रेड + यलो)'} विजयी!`
-          : `🏆 ${isTeamA ? 'Team 1 (Blue + Green)' : 'Team 2 (Red + Yellow)'} Wins!`;
+        titleEl.textContent = isEnglish
+          ? `🏆 ${isTeamA ? 'Team 1 (Blue + Green)' : 'Team 2 (Red + Yellow)'} Champions!`
+          : `🏆 ${isTeamA ? 'टीम 1 (ब्लू + ग्रीन)' : 'टीम 2 (रेड + यलो)'} विजयी!`;
       }
 
       const teamHeader = document.createElement('div');
       teamHeader.className = 'podium-item';
       teamHeader.style.background = isTeamA
-        ? 'linear-gradient(135deg, rgba(0, 114, 188, 0.4), rgba(0, 166, 81, 0.4))'
-        : 'linear-gradient(135deg, rgba(229, 37, 33, 0.4), rgba(253, 184, 19, 0.4))';
+        ? 'linear-gradient(135deg, rgba(0, 114, 188, 0.5), rgba(0, 166, 81, 0.5))'
+        : 'linear-gradient(135deg, rgba(229, 37, 33, 0.5), rgba(253, 184, 19, 0.5))';
       teamHeader.style.border = '2px solid #fbbf24';
+      teamHeader.style.boxShadow = '0 0 24px rgba(251, 191, 36, 0.6)';
       teamHeader.innerHTML = `
-        <span class="podium-rank">🏆</span>
-        <span class="podium-name" style="font-weight: 900; color: #fbbf24; font-size: 1.05rem;">
-          ${isTeamA ? 'Team 1: ब्लू (Blue) + ग्रीन (Green)' : 'Team 2: रेड (Red) + यलो (Yellow)'} - कुल 8 गोटियां होम!
+        <span class="podium-rank" style="font-size: 1.8rem;">👑</span>
+        <span class="podium-name" style="font-weight: 900; color: #fbbf24; font-size: 1.1rem;">
+          ${isEnglish
+            ? (isTeamA ? 'Team 1: Blue + Green' : 'Team 2: Red + Yellow') + ' - VICTORY (8/8 Home)!'
+            : (isTeamA ? 'Team 1: ब्लू (Blue) + ग्रीन (Green)' : 'Team 2: रेड (Red) + यलो (Yellow)') + ' - कुल 8 गोटियां होम!'}
         </span>
       `;
       this.dom.winPodiumList.appendChild(teamHeader);
@@ -732,8 +756,8 @@ class UIController {
         item.innerHTML = `
           <span class="podium-rank">🥇</span>
           <span class="podium-color" style="background: ${p.config.hex};"></span>
-          <span class="podium-name">${p.name} (होम: ${p.tokensFinished}/${this.game.tokensPerPlayer})</span>
-          <span class="podium-kills">⚔️ ${p.killsCount}</span>
+          <span class="podium-name">${p.name} (${isEnglish ? 'Home' : 'होम'}: ${p.tokensFinished}/${this.game.tokensPerPlayer})</span>
+          <span class="podium-kills">⚔️ ${p.killsCount} ${isEnglish ? 'Kills' : 'शिकार'}</span>
         `;
         this.dom.winPodiumList.appendChild(item);
       });
@@ -744,8 +768,8 @@ class UIController {
         item.innerHTML = `
           <span class="podium-rank">🥈</span>
           <span class="podium-color" style="background: ${p.config.hex};"></span>
-          <span class="podium-name">${p.name} (होम: ${p.tokensFinished}/${this.game.tokensPerPlayer})</span>
-          <span class="podium-kills">⚔️ ${p.killsCount}</span>
+          <span class="podium-name">${p.name} (${isEnglish ? 'Home' : 'होम'}: ${p.tokensFinished}/${this.game.tokensPerPlayer})</span>
+          <span class="podium-kills">⚔️ ${p.killsCount} ${isEnglish ? 'Kills' : 'शिकार'}</span>
         `;
         this.dom.winPodiumList.appendChild(item);
       });
@@ -755,6 +779,11 @@ class UIController {
     }
 
     const rankings = Array.isArray(result) ? result : (result?.rankings || []);
+    const titleEl = document.getElementById('win-title');
+    if (titleEl) {
+      titleEl.textContent = isEnglish ? '🏆 Match Over! Winners Podium' : '🏆 खेल समाप्त! विजेता सूची';
+    }
+
     rankings.forEach((p, idx) => {
       const medals = ['🥇', '🥈', '🥉', '4th', '5th', '6th'];
       const item = document.createElement('div');
@@ -763,7 +792,7 @@ class UIController {
         <span class="podium-rank">${medals[idx] || (idx + 1)}</span>
         <span class="podium-color" style="background: ${p.config.hex};"></span>
         <span class="podium-name">${p.name}</span>
-        <span class="podium-kills">⚔️ ${p.killsCount}</span>
+        <span class="podium-kills">⚔️ ${p.killsCount} ${isEnglish ? 'Kills' : 'शिकार'}</span>
       `;
       this.dom.winPodiumList.appendChild(item);
     });
